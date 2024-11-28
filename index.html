@@ -39,7 +39,7 @@
     <button id="resetCamera">Reset Camera</button>
     <button id="zoomOut">Zoom Out and Focus</button>
   </div>
-  <script src="<img src="Projet_test_HLS_LMPI/Ressources/test%20001.jpg"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
     // Initialisation de la scène, caméra et rendu
     const scene = new THREE.Scene();
@@ -54,7 +54,7 @@
 
     // Chargement de la texture de l'environnement
     const textureLoader = new THREE.TextureLoader();
-    textureLoader.load('./test 001.jpg', function (texture) {
+    textureLoader.load('Projet_test_HLS_LMPI/Ressources/test001.jpg', function (texture) {
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
       const imgWidth = texture.image.width;
@@ -65,7 +65,7 @@
       const imgData = context.getImageData(0, 0, imgWidth, imgHeight);
 
       const particleGeometry = new THREE.BufferGeometry();
-      const particleMaterial = new THREE.PointsMaterial({ size: 0.02, vertexColors: true }); // Réduction de la taille des particules pour une meilleure qualité
+      const particleMaterial = new THREE.PointsMaterial({ size: 0.02, vertexColors: true });
       const particleVertices = [];
       const particleColors = [];
 
@@ -77,10 +77,10 @@
           const b = imgData.data[i + 2] / 255;
           const a = imgData.data[i + 3] / 255;
 
-          if (a > 0.5) { // On ne crée des particules que pour les pixels qui ne sont pas transparents
+          if (a > 0.5) {
             const posX = (x - imgWidth / 2) / 20;
             const posY = (y - imgHeight / 2) / 20;
-            const posZ = (Math.random() - 0.5) * 5; // Particules dispersées avec une profondeur aléatoire plus faible
+            const posZ = (Math.random() - 0.5) * 5;
             particleVertices.push(posX, posY, posZ);
             particleColors.push(r, g, b);
           }
@@ -91,14 +91,12 @@
       particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
 
       particles = new THREE.Points(particleGeometry, particleMaterial);
-      particles.rotation.x = Math.PI; // Corriger l'orientation de l'image
+      particles.rotation.x = Math.PI;
       scene.add(particles);
 
-      // Position initiale de la caméra (très proche pour permettre un dézoom progressif)
       camera.position.set(0, 0, 2);
       camera.lookAt(0, 0, 0);
 
-      // Animation
       function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
@@ -106,30 +104,27 @@
       animate();
     });
 
-    // Gestion du redimensionnement
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // UI Overlay - Interaction utilisateur
     document.getElementById('resetCamera').addEventListener('click', () => {
       camera.position.set(0, 0, 2);
       camera.lookAt(0, 0, 0);
     });
 
     document.getElementById('zoomOut').addEventListener('click', () => {
-      const zoomOutDuration = 4000; // Durée du dézoom en ms
+      const zoomOutDuration = 4000;
       const startTime = performance.now();
       const startPosition = camera.position.clone();
-      const targetPosition = new THREE.Vector3(0, 0, 30); // Dézoom vers une position plus éloignée mais bien définie
+      const targetPosition = new THREE.Vector3(0, 0, 30);
 
       function zoomOutSmooth(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / zoomOutDuration, 1);
 
-        // Interpolation lissée entre les positions de caméra pour un mouvement fluide
         camera.position.lerpVectors(startPosition, targetPosition, progress);
         camera.lookAt(0, 0, 0);
 
@@ -137,7 +132,6 @@
         if (progress < 1) {
           requestAnimationFrame(zoomOutSmooth);
         } else {
-          // Correction finale pour s'assurer que la caméra reste stable après le dézoom
           camera.position.copy(targetPosition);
           camera.lookAt(0, 0, 0);
         }
@@ -145,7 +139,6 @@
       requestAnimationFrame(zoomOutSmooth);
     });
 
-    // Interaction avec la souris - Maintien du clic pour faire tourner la caméra
     window.addEventListener('mousedown', (event) => {
       isDragging = true;
       previousMousePosition = { x: event.clientX, y: event.clientY };
@@ -169,19 +162,16 @@
       }
     });
 
-    // Apparition et disparition aléatoires des particules
     setInterval(() => {
       if (particles) {
         const positions = particles.geometry.attributes.position.array;
         for (let i = 0; i < positions.length; i += 3) {
-          positions[i + 2] += (Math.random() - 0.5) * 0.2; // Variation aléatoire moins intense pour stabiliser l'image
+          positions[i + 2] += (Math.random() - 0.5) * 0.2;
         }
         particles.geometry.attributes.position.needsUpdate = true;
       }
     }, 100);
-    window.addEventListener("error", (e) => {
-  console.error("Erreur capturée :", e.message);
-});
   </script>
 </body>
 </html>
+
