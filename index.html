@@ -46,6 +46,7 @@
   <div id="ui-overlay">
     <button id="resetCamera">Reset Camera</button>
     <button id="zoomOut">Zoom Out and Focus</button>
+    <button id="toggleDeviceOrientation">Disable Orientation</button>
   </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
@@ -56,6 +57,7 @@
     document.body.appendChild(renderer.domElement);
 
     let particles;
+    let isDeviceOrientationActive = true;
 
     // Chargement de la texture de l'environnement
     const textureLoader = new THREE.TextureLoader();
@@ -99,12 +101,13 @@
     });
 
     // Rotation avec l'appareil
-    window.addEventListener('deviceorientation', (event) => {
-      if (event.alpha && event.beta && event.gamma) {
+    const deviceOrientationHandler = (event) => {
+      if (isDeviceOrientationActive && event.alpha && event.beta && event.gamma) {
         camera.rotation.x = THREE.MathUtils.degToRad(event.beta - 90);
         camera.rotation.y = THREE.MathUtils.degToRad(event.gamma);
       }
-    });
+    };
+    window.addEventListener('deviceorientation', deviceOrientationHandler);
 
     // Animation
     function animate() {
@@ -140,6 +143,17 @@
         if (progress < 1) requestAnimationFrame(animateZoomOut);
       }
       requestAnimationFrame(animateZoomOut);
+    });
+
+    document.getElementById('toggleDeviceOrientation').addEventListener('click', () => {
+      isDeviceOrientationActive = !isDeviceOrientationActive;
+      const button = document.getElementById('toggleDeviceOrientation');
+      button.textContent = isDeviceOrientationActive ? "Disable Orientation" : "Enable Orientation";
+
+      if (!isDeviceOrientationActive) {
+        camera.position.set(0, 0, 10); // Centre la caméra pour afficher l'image entière
+        camera.rotation.set(0, 0, 0);
+      }
     });
   </script>
 </body>
