@@ -179,6 +179,9 @@
         particles.geometry.attributes.position.needsUpdate = true;
       }
     }, 100);
+    window.addEventListener("error", (e) => {
+  console.error("Erreur capturée :", e.message);
+});
   </script>
 </body>
 </html>
