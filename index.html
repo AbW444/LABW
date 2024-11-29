@@ -123,7 +123,6 @@
   <div id="ui-overlay">
     <button id="resetCamera">Se Replacer</button>
     <button id="toggleZoom">Zoom</button>
-    <button id="toggleGyroscope">Gyroscope</button> <!-- Nouveau bouton Gyroscope -->
   </div>
   <button id="arrow-left" class="arrow">&lt;</button>
   <button id="arrow-right" class="arrow">&gt;</button>
@@ -155,7 +154,7 @@
     }
 
     function loadImage(imageIndex) {
-      const imagePath = `./Projet_test_HLS_LMPI/Ressources/test%20${String(imageIndex).padStart(3, '0')}.jpg`;
+      const imagePath = ./Projet_test_HLS_LMPI/Ressources/test%20${String(imageIndex).padStart(3, '0')}.jpg;
 
       textureLoader.load(imagePath, function (texture) {
         const canvas = document.createElement('canvas');
@@ -211,7 +210,7 @@
         particles.rotation.x = Math.PI; // Corriger l'orientation de l'image
         scene.add(particles);
       }, undefined, function (err) {
-        console.error(`Une erreur est survenue lors du chargement de l'image ${imageIndex}:`, err);
+        console.error(Une erreur est survenue lors du chargement de l'image ${imageIndex}:, err);
       });
     }
 
@@ -331,21 +330,6 @@
       requestAnimationFrame(animateZoom);
     });
 
-    // Gestion du gyroscope pour smartphone
-    document.getElementById('toggleGyroscope').addEventListener('click', () => {
-      if (window.DeviceOrientationEvent) {
-        window.addEventListener('deviceorientation', handleOrientation);
-      }
-    });
-
-    function handleOrientation(event) {
-      const beta = event.beta; // Inclinaison avant-arrière
-      const gamma = event.gamma; // Inclinaison gauche-droite
-
-      camera.rotation.x = THREE.MathUtils.degToRad(beta) * 0.05;
-      camera.rotation.y = THREE.MathUtils.degToRad(gamma) * 0.05;
-    }
-
     // Déplacement de la caméra avec un clic maintenu
     window.addEventListener('mousedown', (event) => {
       isDragging = true;
@@ -405,6 +389,94 @@
       }
       requestAnimationFrame(animateZoom);
     });
+	
+window.addEventListener('touchend', (event) => {
+  touchEndX = event.changedTouches[0].screenX;
+  handleGesture();
+});
+
+function handleGesture() {
+  if (touchEndX < touchStartX - 50) {
+    document.getElementById('arrow-right').click(); // Simuler un clic sur la flèche droite
+  } else if (touchEndX > touchStartX + 50) {
+    document.getElementById('arrow-left').click(); // Simuler un clic sur la flèche gauche
+  }
+}
+
+// Ajouter des interactions tactiles pour les boutons
+document.getElementById('toggleZoom').addEventListener('touchstart', () => {
+  document.getElementById('toggleZoom').click(); // Simuler un clic sur le bouton Zoom
+});
+
+document.getElementById('resetCamera').addEventListener('touchstart', () => {
+  document.getElementById('resetCamera').click(); // Simuler un clic sur le bouton Reset
+});
+// Charger l'image initiale
+loadImage(currentImageIndex);
+
+// Navigation avec les flèches
+document.getElementById('arrow-left').addEventListener('click', () => {
+  currentImageIndex = currentImageIndex === 0 ? maxImageIndex : currentImageIndex - 1;
+  loadImage(currentImageIndex);
+});
+
+document.getElementById('arrow-right').addEventListener('click', () => {
+  currentImageIndex = currentImageIndex === maxImageIndex ? 0 : currentImageIndex + 1;
+  loadImage(currentImageIndex);
+});
+
+window.addEventListener('touchend', (event) => {
+  touchEndX = event.changedTouches[0].screenX;
+  handleGesture();
+});
+
+function handleGesture() {
+  if (touchEndX < touchStartX - 50) {
+    document.getElementById('arrow-right').click(); // Simuler un clic sur la flèche droite
+  } else if (touchEndX > touchStartX + 50) {
+    document.getElementById('arrow-left').click(); // Simuler un clic sur la flèche gauche
+  }
+}
+
+// Ajouter des interactions tactiles pour les boutons
+document.getElementById('toggleZoom').addEventListener('touchstart', () => {
+  document.getElementById('toggleZoom').click(); // Simuler un clic sur le bouton Zoom
+});
+
+document.getElementById('resetCamera').addEventListener('touchstart', () => {
+  document.getElementById('resetCamera').click(); // Simuler un clic sur le bouton Reset
+});
+let isTouchDragging = false;
+let touchStartPosition = { x: 0, y: 0 };
+
+window.addEventListener('touchstart', (event) => {
+  if (event.touches.length === 1) { // S'assurer qu'il s'agit d'un seul doigt
+    isTouchDragging = true;
+    touchStartPosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+  }
+});
+
+window.addEventListener('touchmove', (event) => {
+  if (isTouchDragging) {
+    const touchMovePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    const deltaMove = {
+      x: touchMovePosition.x - touchStartPosition.x,
+      y: touchMovePosition.y - touchStartPosition.y,
+    };
+
+    // Appliquer les rotations à la caméra
+    camera.rotation.y -= deltaMove.x * 0.002; // Ajuster la sensibilité ici
+    camera.rotation.x -= deltaMove.y * 0.002;
+
+    // Mettre à jour la position initiale pour le prochain mouvement
+    touchStartPosition = touchMovePosition;
+  }
+});
+
+window.addEventListener('touchend', () => {
+  isTouchDragging = false;
+});
+
   </script>
 </body>
 </html>
