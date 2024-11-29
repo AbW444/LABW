@@ -40,8 +40,6 @@
         padding: 10px 15px;
         font-size: 14px;
       }
-	<button id="enableGyroscope" style="position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); background-color: #00ffcc; color: #0e0e0e; border: none; padding: 10px 20px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer;">Activer Gyroscope</button>
-
     }
     .arrow {
       position: absolute;
@@ -82,7 +80,7 @@
       flex-direction: column;
       color: #00ffcc;
       font-size: 216px;
-      font-weight: 900; /* Plus épais possible */
+      font-weight: 900;
       z-index: 20;
     }
     #startButton {
@@ -95,11 +93,11 @@
       border: none;
       font-size: 216px;
       cursor: pointer;
-      font-weight: 900; /* Plus épais possible */
+      font-weight: 900;
       transition: color 0.3s, background-color 0.3s;
     }
     #startButton:hover {
-      background-color: rgba(106, 13, 173, 0.3); /* Changer la couleur de surbrillance en bleu/violet avec une opacité de 30% */
+      background-color: rgba(106, 13, 173, 0.3);
     }
     #page-title {
       position: absolute;
@@ -111,6 +109,20 @@
       font-weight: bold;
       z-index: 15;
       display: none;
+      cursor: pointer;
+    }
+    #enableGyroscope {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #00ffcc;
+      color: #0e0e0e;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 5px;
       cursor: pointer;
     }
   </style>
@@ -128,331 +140,72 @@
   </div>
   <button id="arrow-left" class="arrow">&lt;</button>
   <button id="arrow-right" class="arrow">&gt;</button>
+  <button id="enableGyroscope">Activer Gyroscope</button>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    // Initialisation de la scène, caméra et rendu
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    let particles;
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
-    let isZoomedIn = true;
-    let currentImageIndex = 0;
-    const maxImageIndex = 7;
 
-    const textureLoader = new THREE.TextureLoader();
+    // Gestion tactile pour rotation de caméra
+    let isTouchDragging = false;
+    let touchStartPosition = { x: 0, y: 0 };
 
-    // Saturation des couleurs
-    function saturateColor(r, g, b, intensity = 2.0) {
-      const avg = (r + g + b) / 3;
-      r = avg + (r - avg) * intensity;
-      g = avg + (g - avg) * intensity;
-      b = avg + (b - avg) * intensity;
-      return { r: Math.min(r, 1), g: Math.min(g, 1), b: Math.min(b, 1) };
-    }
-
-    function loadImage(imageIndex) {
-      const imagePath = `./Projet_test_HLS_LMPI/Ressources/test%20${String(imageIndex).padStart(3, '0')}.jpg`;
-
-      textureLoader.load(imagePath, function (texture) {
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        const imgWidth = texture.image.width;
-        const imgHeight = texture.image.height;
-        canvas.width = imgWidth;
-        canvas.height = imgHeight;
-        context.drawImage(texture.image, 0, 0, imgWidth, imgHeight);
-        const imgData = context.getImageData(0, 0, imgWidth, imgHeight);
-
-        const particleGeometry = new THREE.BufferGeometry();
-        const particleMaterial = new THREE.PointsMaterial({
-          size: 0.02,
-          vertexColors: true,
-        });
-
-        const particleVertices = [];
-        const particleColors = [];
-
-        for (let y = 0; y < imgHeight; y++) {
-          for (let x = 0; x < imgWidth; x++) {
-            const i = (y * imgWidth + x) * 4;
-            let r = imgData.data[i] / 255;
-            let g = imgData.data[i + 1] / 255;
-            let b = imgData.data[i + 2] / 255;
-            const a = imgData.data[i + 3] / 255;
-
-            if (a > 0.5) {
-              // Saturer les couleurs
-              const saturated = saturateColor(r, g, b);
-              r = saturated.r;
-              g = saturated.g;
-              b = saturated.b;
-
-              const posX = (x - imgWidth / 2) / 50;
-              const posY = (y - imgHeight / 2) / 50;
-              const posZ = (Math.random() - 0.5) * 5;
-              particleVertices.push(posX, posY, posZ);
-              particleColors.push(r, g, b);
-            }
-          }
-        }
-
-        particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particleVertices, 3));
-        particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
-
-        if (particles) {
-          scene.remove(particles);
-        }
-
-        particles = new THREE.Points(particleGeometry, particleMaterial);
-        particles.rotation.x = Math.PI; // Corriger l'orientation de l'image
-        scene.add(particles);
-      }, undefined, function (err) {
-        console.error(`Une erreur est survenue lors du chargement de l'image ${imageIndex}:`, err);
-      });
-    }
-
-    // Ajouter des étoiles autour de la caméra
-    const starGeometry = new THREE.BufferGeometry();
-    const starMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.01,
-      transparent: true,
-      opacity: 0.8,
-    });
-
-    const starVertices = [];
-    for (let i = 0; i < 3000; i++) {
-      const x = (Math.random() - 0.5) * 500; // Plus éloignées
-      const y = (Math.random() - 0.5) * 500;
-      const z = (Math.random() - 0.5) * 500;
-      starVertices.push(x, y, z);
-    }
-
-    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);
-
-    // Ajouter la Lune à la scène
-    const moonGeometry = new THREE.SphereGeometry(5, 32, 32);
-    const moonMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xaaaaaa });
-    const moon = new THREE.Mesh(moonGeometry, moonMaterial);
-    moon.position.set(50, 100, -200);
-    scene.add(moon);
-
-    // Ajouter la lumière directionnelle pour la Lune
-    const moonLight = new THREE.PointLight(0xffffff, 1, 500);
-    moonLight.position.set(50, 100, -200);
-    scene.add(moonLight);
-
-    // Ajouter la neige à la scène
-    const snowGeometry = new THREE.BufferGeometry();
-    const snowMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.02,
-      transparent: true,
-      opacity: 0.8,
-    });
-
-    const snowVertices = [];
-    for (let i = 0; i < 2000; i++) {
-      const x = (Math.random() - 0.5) * 200;
-      const y = Math.random() * 200;
-      const z = (Math.random() - 0.5) * 200;
-      snowVertices.push(x, y, z);
-    }
-
-    snowGeometry.setAttribute('position', new THREE.Float32BufferAttribute(snowVertices, 3));
-    const snow = new THREE.Points(snowGeometry, snowMaterial);
-    scene.add(snow);
-
-    // Charger l'image initiale
-    loadImage(currentImageIndex);
-
-    // Navigation avec les flèches
-    document.getElementById('arrow-left').addEventListener('click', () => {
-      currentImageIndex = currentImageIndex === 0 ? maxImageIndex : currentImageIndex - 1;
-      loadImage(currentImageIndex);
-    });
-
-    document.getElementById('arrow-right').addEventListener('click', () => {
-      currentImageIndex = currentImageIndex === maxImageIndex ? 0 : currentImageIndex + 1;
-      loadImage(currentImageIndex);
-    });
-
-    // Position initiale de la caméra
-    camera.position.set(0, 0, 2);
-    camera.lookAt(0, 0, 0);
-
-    // Animation
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-      snow.rotation.y += 0.001; // Faire tourner la neige pour un effet subtil
-    }
-    animate();
-
-    // Gestion du redimensionnement
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // UI Overlay - Interaction utilisateur
-    document.getElementById('resetCamera').addEventListener('click', () => {
-      camera.position.set(0, 0, 20); // Position de la caméra en zoom arrière
-      camera.lookAt(0, 0, 0);
-    });
-
-    document.getElementById('toggleZoom').addEventListener('click', () => {
-      const zoomDuration = 1500;
-      const startPosition = camera.position.clone();
-      const targetPosition = isZoomedIn
-        ? new THREE.Vector3(0, 0, 20)
-        : new THREE.Vector3(0, 0, 2);
-
-      const startTime = performance.now();
-      function animateZoom(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / zoomDuration, 1);
-        camera.position.lerpVectors(startPosition, targetPosition, progress);
-        camera.lookAt(0, 0, 0);
-
-        if (progress < 1) {
-          requestAnimationFrame(animateZoom);
-        } else {
-          isZoomedIn = !isZoomedIn;
-        }
+    window.addEventListener('touchstart', (event) => {
+      if (event.touches.length === 1) {
+        isTouchDragging = true;
+        touchStartPosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
       }
-      requestAnimationFrame(animateZoom);
     });
 
-    // Déplacement de la caméra avec un clic maintenu
-    window.addEventListener('mousedown', (event) => {
-      isDragging = true;
-      previousMousePosition = { x: event.clientX, y: event.clientY };
-    });
-
-    window.addEventListener('mouseup', () => {
-      isDragging = false;
-    });
-
-    window.addEventListener('mousemove', (event) => {
-      if (isDragging) {
+    window.addEventListener('touchmove', (event) => {
+      if (isTouchDragging) {
+        const touchMovePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
         const deltaMove = {
-          x: event.clientX - previousMousePosition.x,
-          y: event.clientY - previousMousePosition.y,
+          x: touchMovePosition.x - touchStartPosition.x,
+          y: touchMovePosition.y - touchStartPosition.y,
         };
 
         camera.rotation.y -= deltaMove.x * 0.005;
         camera.rotation.x -= deltaMove.y * 0.005;
 
-        previousMousePosition = { x: event.clientX, y: event.clientY };
+        touchStartPosition = touchMovePosition;
       }
     });
 
-    // Apparition et disparition aléatoires des particules
-    setInterval(() => {
-      if (particles) {
-        const positions = particles.geometry.attributes.position.array;
-        for (let i = 0; i < positions.length; i += 3) {
-          positions[i + 2] += (Math.random() - 0.5) * 0.1;
-        }
-        particles.geometry.attributes.position.needsUpdate = true;
-      }
-    }, 50);
-
-    // Masquer l'interface d'accueil lorsque l'utilisateur commence
-    document.getElementById('startButton').addEventListener('click', () => {
-      document.getElementById('intro-overlay').style.display = 'none';
-      document.getElementById('page-title').style.display = 'block';
-      document.getElementById('ui-overlay').style.display = 'flex';
-      document.getElementById('arrow-left').style.display = 'flex';
-      document.getElementById('arrow-right').style.display = 'flex';
-
-      // Déclencher le zoom arrière de la caméra
-      const zoomDuration = 1500;
-      const startPosition = camera.position.clone();
-      const targetPosition = new THREE.Vector3(0, 0, 20);
-      const startTime = performance.now();
-      function animateZoom(currentTime) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / zoomDuration, 1);
-        camera.position.lerpVectors(startPosition, targetPosition, progress);
-        camera.lookAt(0, 0, 0);
-        if (progress < 1) {
-          requestAnimationFrame(animateZoom);
-        }
-      }
-      requestAnimationFrame(animateZoom);
+    window.addEventListener('touchend', () => {
+      isTouchDragging = false;
     });
-	
-function handleGesture() {
-  if (touchEndX < touchStartX - 50) {
-    document.getElementById('arrow-right').click(); // Simuler un clic sur la flèche droite
-  } else if (touchEndX > touchStartX + 50) {
-    document.getElementById('arrow-left').click(); // Simuler un clic sur la flèche gauche
-  }
-}
 
-// Ajouter des interactions tactiles pour les boutons
-document.getElementById('toggleZoom').addEventListener('touchstart', () => {
-  document.getElementById('toggleZoom').click(); // Simuler un clic sur le bouton Zoom
-});
+    // Gestion du gyroscope
+    document.getElementById('enableGyroscope').addEventListener('click', () => {
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', (event) => {
+          const rotationX = event.beta; // Inclinaison avant-arrière
+          const rotationY = event.gamma; // Inclinaison gauche-droite
 
-document.getElementById('resetCamera').addEventListener('touchstart', () => {
-  document.getElementById('resetCamera').click(); // Simuler un clic sur le bouton Reset
-});
-let isTouchDragging = false;
-let touchStartPosition = { x: 0, y: 0 };
+          camera.rotation.x = THREE.MathUtils.degToRad(rotationX / 2); // Ajuste selon la sensibilité
+          camera.rotation.y = THREE.MathUtils.degToRad(rotationY / 2);
+        });
 
-window.addEventListener('touchstart', (event) => {
-  if (event.touches.length === 1) { // S'assurer qu'il s'agit d'un seul doigt
-    isTouchDragging = true;
-    touchStartPosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
-  }
-});
-
-window.addEventListener('touchmove', (event) => {
-  if (isTouchDragging) {
-    const touchMovePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
-    const deltaMove = {
-      x: touchMovePosition.x - touchStartPosition.x,
-      y: touchMovePosition.y - touchStartPosition.y,
- };
-
-// Appliquer les rotations à la caméra
-camera.rotation.y -= deltaMove.x * 0.005; // Ajuster la sensibilité ici
-camera.rotation.x -= deltaMove.y * 0.005;
-
-    // Mettre à jour la position initiale pour le prochain mouvement
-touchStartPosition = touchMovePosition;
-  }
-});
-
-window.addEventListener('touchend', () => {
-  isTouchDragging = false;
-});
-document.getElementById('enableGyroscope').addEventListener('click', () => {
-  if (window.DeviceOrientationEvent) {
-    window.addEventListener('deviceorientation', (event) => {
-      const rotationX = event.beta; // Inclinaison avant-arrière
-      const rotationY = event.gamma; // Inclinaison gauche-droite
-
-      // Ajuster la caméra en fonction des rotations
-      camera.rotation.x = THREE.MathUtils.degToRad(rotationX / 2); // Sensibilité divisée par 2
-      camera.rotation.y = THREE.MathUtils.degToRad(rotationY / 2);
+        alert('Gyroscope activé. Déplacez votre appareil pour ajuster la vue.');
+      } else {
+        alert('Le gyroscope n’est pas pris en charge sur ce dispositif.');
+      }
     });
-  } else {
-    alert('Le gyroscope n’est pas pris en charge sur ce dispositif.');
-  }
-});
 
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
   </script>
 </body>
+</html>
+
 </html>
