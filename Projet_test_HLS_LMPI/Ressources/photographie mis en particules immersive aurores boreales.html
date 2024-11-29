@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Particle Environment</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // Initialisation de la scène, caméra et rendu
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Chargement de la texture de l'environnement
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load('./test 001.jpg', function (texture) {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      const imgWidth = texture.image.width;
+      const imgHeight = texture.image.height;
+      canvas.width = imgWidth;
+      canvas.height = imgHeight;
+      context.drawImage(texture.image, 0, 0, imgWidth, imgHeight);
+      const imgData = context.getImageData(0, 0, imgWidth, imgHeight);
+
+      const particleGeometry = new THREE.BufferGeometry();
+      const particleMaterial = new THREE.PointsMaterial({ size: 0.1, vertexColors: true });
+      const particleVertices = [];
+      const particleColors = [];
+
+      for (let y = 0; y < imgHeight; y++) {
+        for (let x = 0; x < imgWidth; x++) {
+          const i = (y * imgWidth + x) * 4;
+          const r = imgData.data[i] / 255;
+          const g = imgData.data[i + 1] / 255;
+          const b = imgData.data[i + 2] / 255;
+          const a = imgData.data[i + 3] / 255;
+
+          if (a > 0.5) { // On ne crée des particules que pour les pixels qui ne sont pas transparents
+            const posX = (x - imgWidth / 2) / 10;
+            const posY = (y - imgHeight / 2) / 10;
+            const posZ = (Math.random() - 0.5) * 5;
+            particleVertices.push(posX, posY, posZ);
+            particleColors.push(r, g, b);
+          }
+        }
+      }
+
+      particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particleVertices, 3));
+      particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
+
+      const particles = new THREE.Points(particleGeometry, particleMaterial);
+      scene.add(particles);
+
+      // Position de la caméra
+      camera.position.z = 50;
+
+      // Animation
+      function animate() {
+        requestAnimationFrame(animate);
+        particles.rotation.y += 0.0005; // Rotation des particules pour l'effet d'exploration
+        renderer.render(scene, camera);
+      }
+      animate();
+    });
+
+    // Gestion du redimensionnement
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Interaction avec la souris
+    window.addEventListener('mousemove', (event) => {
+      const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+      const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+      camera.position.x = mouseX * 20;
+      camera.position.y = mouseY * 20;
+      camera.lookAt(scene.position);
+    });
+  </script>
+</body>
+</html>
