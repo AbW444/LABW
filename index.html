@@ -40,6 +40,8 @@
         padding: 10px 15px;
         font-size: 14px;
       }
+	<button id="enableGyroscope" style="position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); background-color: #00ffcc; color: #0e0e0e; border: none; padding: 10px 20px; font-size: 16px; font-weight: bold; border-radius: 5px; cursor: pointer;">Activer Gyroscope</button>
+
     }
     .arrow {
       position: absolute;
@@ -154,7 +156,7 @@
     }
 
     function loadImage(imageIndex) {
-      const imagePath = ./Projet_test_HLS_LMPI/Ressources/test%20${String(imageIndex).padStart(3, '0')}.jpg;
+      const imagePath = `./Projet_test_HLS_LMPI/Ressources/test%20${String(imageIndex).padStart(3, '0')}.jpg`;
 
       textureLoader.load(imagePath, function (texture) {
         const canvas = document.createElement('canvas');
@@ -210,7 +212,7 @@
         particles.rotation.x = Math.PI; // Corriger l'orientation de l'image
         scene.add(particles);
       }, undefined, function (err) {
-        console.error(Une erreur est survenue lors du chargement de l'image ${imageIndex}:, err);
+        console.error(`Une erreur est survenue lors du chargement de l'image ${imageIndex}:`, err);
       });
     }
 
@@ -390,46 +392,6 @@
       requestAnimationFrame(animateZoom);
     });
 	
-window.addEventListener('touchend', (event) => {
-  touchEndX = event.changedTouches[0].screenX;
-  handleGesture();
-});
-
-function handleGesture() {
-  if (touchEndX < touchStartX - 50) {
-    document.getElementById('arrow-right').click(); // Simuler un clic sur la flèche droite
-  } else if (touchEndX > touchStartX + 50) {
-    document.getElementById('arrow-left').click(); // Simuler un clic sur la flèche gauche
-  }
-}
-
-// Ajouter des interactions tactiles pour les boutons
-document.getElementById('toggleZoom').addEventListener('touchstart', () => {
-  document.getElementById('toggleZoom').click(); // Simuler un clic sur le bouton Zoom
-});
-
-document.getElementById('resetCamera').addEventListener('touchstart', () => {
-  document.getElementById('resetCamera').click(); // Simuler un clic sur le bouton Reset
-});
-// Charger l'image initiale
-loadImage(currentImageIndex);
-
-// Navigation avec les flèches
-document.getElementById('arrow-left').addEventListener('click', () => {
-  currentImageIndex = currentImageIndex === 0 ? maxImageIndex : currentImageIndex - 1;
-  loadImage(currentImageIndex);
-});
-
-document.getElementById('arrow-right').addEventListener('click', () => {
-  currentImageIndex = currentImageIndex === maxImageIndex ? 0 : currentImageIndex + 1;
-  loadImage(currentImageIndex);
-});
-
-window.addEventListener('touchend', (event) => {
-  touchEndX = event.changedTouches[0].screenX;
-  handleGesture();
-});
-
 function handleGesture() {
   if (touchEndX < touchStartX - 50) {
     document.getElementById('arrow-right').click(); // Simuler un clic sur la flèche droite
@@ -462,21 +424,35 @@ window.addEventListener('touchmove', (event) => {
     const deltaMove = {
       x: touchMovePosition.x - touchStartPosition.x,
       y: touchMovePosition.y - touchStartPosition.y,
-    };
+ };
 
-    // Appliquer les rotations à la caméra
-    camera.rotation.y -= deltaMove.x * 0.002; // Ajuster la sensibilité ici
-    camera.rotation.x -= deltaMove.y * 0.002;
+// Appliquer les rotations à la caméra
+camera.rotation.y -= deltaMove.x * 0.005; // Ajuster la sensibilité ici
+camera.rotation.x -= deltaMove.y * 0.005;
 
     // Mettre à jour la position initiale pour le prochain mouvement
-    touchStartPosition = touchMovePosition;
+touchStartPosition = touchMovePosition;
   }
 });
 
 window.addEventListener('touchend', () => {
   isTouchDragging = false;
 });
+document.getElementById('enableGyroscope').addEventListener('click', () => {
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientation', (event) => {
+      const rotationX = event.beta; // Inclinaison avant-arrière
+      const rotationY = event.gamma; // Inclinaison gauche-droite
+
+      // Ajuster la caméra en fonction des rotations
+      camera.rotation.x = THREE.MathUtils.degToRad(rotationX / 2); // Sensibilité divisée par 2
+      camera.rotation.y = THREE.MathUtils.degToRad(rotationY / 2);
+    });
+  } else {
+    alert('Le gyroscope n’est pas pris en charge sur ce dispositif.');
+  }
+});
 
   </script>
-</body>
+</body>"
 </html>
