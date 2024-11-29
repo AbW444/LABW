@@ -154,7 +154,7 @@
     }
 
     function loadImage(imageIndex) {
-      const imagePath = ./Projet_test_HLS_LMPI/Ressources/test%20${String(imageIndex).padStart(3, '0')}.jpg;
+      const imagePath = `./Projet_test_HLS_LMPI/Ressources/test%20${String(imageIndex).padStart(3, '0')}.jpg`;
 
       textureLoader.load(imagePath, function (texture) {
         const canvas = document.createElement('canvas');
@@ -210,7 +210,7 @@
         particles.rotation.x = Math.PI; // Corriger l'orientation de l'image
         scene.add(particles);
       }, undefined, function (err) {
-        console.error(Une erreur est survenue lors du chargement de l'image ${imageIndex}:, err);
+        console.error(`Une erreur est survenue lors du chargement de l'image ${imageIndex}:`, err);
       });
     }
 
