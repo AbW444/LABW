@@ -389,6 +389,36 @@
       }
       requestAnimationFrame(animateZoom);
     });
+	// Ajouter des événements tactiles pour smartphone
+let touchStartX = 0;
+let touchEndX = 0;
+
+window.addEventListener('touchstart', (event) => {
+  touchStartX = event.changedTouches[0].screenX;
+});
+
+window.addEventListener('touchend', (event) => {
+  touchEndX = event.changedTouches[0].screenX;
+  handleGesture();
+});
+
+function handleGesture() {
+  if (touchEndX < touchStartX - 50) {
+    document.getElementById('arrow-right').click(); // Simuler un clic sur la flèche droite
+  } else if (touchEndX > touchStartX + 50) {
+    document.getElementById('arrow-left').click(); // Simuler un clic sur la flèche gauche
+  }
+}
+
+// Ajouter des interactions tactiles pour les boutons
+document.getElementById('toggleZoom').addEventListener('touchstart', () => {
+  document.getElementById('toggleZoom').click(); // Simuler un clic sur le bouton Zoom
+});
+
+document.getElementById('resetCamera').addEventListener('touchstart', () => {
+  document.getElementById('resetCamera').click(); // Simuler un clic sur le bouton Reset
+});
+
   </script>
 </body>
 </html>
