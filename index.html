@@ -407,14 +407,6 @@ document.getElementById('arrow-right').addEventListener('click', () => {
   loadImage(currentImageIndex);
 });
 
-// Ajouter des événements tactiles pour smartphone
-let touchStartX = 0;
-let touchEndX = 0;
-
-window.addEventListener('touchstart', (event) => {
-  touchStartX = event.changedTouches[0].screenX;
-});
-
 window.addEventListener('touchend', (event) => {
   touchEndX = event.changedTouches[0].screenX;
   handleGesture();
@@ -466,6 +458,7 @@ window.addEventListener('touchmove', (event) => {
 window.addEventListener('touchend', () => {
   isTouchDragging = false;
 });
+    
   </script>
 </body>
 </html>
