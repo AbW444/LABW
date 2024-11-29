@@ -175,6 +175,38 @@
 
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
+    let particles;
+
+    function loadParticles() {
+      const geometry = new THREE.BufferGeometry();
+      const material = new THREE.PointsMaterial({
+        color: 0x00ffcc,
+        size: 0.02,
+      });
+
+      const vertices = [];
+      for (let i = 0; i < 1000; i++) {
+        const x = Math.random() * 10 - 5;
+        const y = Math.random() * 10 - 5;
+        const z = Math.random() * 10 - 5;
+        vertices.push(x, y, z);
+      }
+
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+      particles = new THREE.Points(geometry, material);
+      scene.add(particles);
+    }
+
+    loadParticles();
+
+    // Navigation avec les flèches
+    document.getElementById('arrow-left').addEventListener('click', () => {
+      camera.position.x -= 1;
+    });
+
+    document.getElementById('arrow-right').addEventListener('click', () => {
+      camera.position.x += 1;
+    });
 
     // Interactions tactiles
     window.addEventListener('touchstart', (event) => {
@@ -200,19 +232,12 @@
       }
     });
 
-    // Animation
     function animate() {
       requestAnimationFrame(animate);
       renderer.render(scene, camera);
     }
-    animate();
 
-    // Resize Event
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    animate();
 
     document.getElementById('startButton').addEventListener('click', () => {
       document.getElementById('intro-overlay').style.display = 'none';
