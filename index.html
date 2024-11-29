@@ -389,19 +389,7 @@
       }
       requestAnimationFrame(animateZoom);
     });
-	// Ajouter des événements tactiles pour smartphone
-let touchStartX = 0;
-let touchEndX = 0;
-
-window.addEventListener('touchstart', (event) => {
-  touchStartX = event.changedTouches[0].screenX;
-});
-
-window.addEventListener('touchend', (event) => {
-  touchEndX = event.changedTouches[0].screenX;
-  handleGesture();
-});
-
+	
 function handleGesture() {
   if (touchEndX < touchStartX - 50) {
     document.getElementById('arrow-right').click(); // Simuler un clic sur la flèche droite
@@ -434,14 +422,14 @@ window.addEventListener('touchmove', (event) => {
     const deltaMove = {
       x: touchMovePosition.x - touchStartPosition.x,
       y: touchMovePosition.y - touchStartPosition.y,
-    };
+ };
 
-    // Appliquer les rotations à la caméra
-    camera.rotation.y -= deltaMove.x * 0.005; // Ajuster la sensibilité ici
-    camera.rotation.x -= deltaMove.y * 0.005;
+// Appliquer les rotations à la caméra
+camera.rotation.y -= deltaMove.x * 0.005; // Ajuster la sensibilité ici
+camera.rotation.x -= deltaMove.y * 0.005;
 
     // Mettre à jour la position initiale pour le prochain mouvement
-    touchStartPosition = touchMovePosition;
+touchStartPosition = touchMovePosition;
   }
 });
 
