@@ -7,47 +7,153 @@
   <style>
     body { margin: 0; overflow: hidden; font-family: 'Roboto', Arial, sans-serif; background-color: #0e0e0e; }
     canvas { display: block; }
-    #enableGyroscope {
+    #ui-overlay {
       position: absolute;
-      bottom: 100px; /* Positionné au-dessus de l'UI Overlay */
+      bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px rgba(0, 255, 204, 0.7);
+      display: none;
+    }
+    #ui-overlay button {
       background-color: #00ffcc;
       color: #0e0e0e;
       border: none;
       padding: 15px 20px;
       font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+    #ui-overlay button:hover {
+      background-color: #00e6b3;
+    }
+    #enableGyroscope {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #00ffcc;
+      color: #0e0e0e;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
       font-weight: bold;
       border-radius: 5px;
       cursor: pointer;
-      z-index: 50; /* Assurez que ce bouton est au-dessus des autres éléments */
+      z-index: 10;
     }
     #enableGyroscope:hover {
       background-color: #00e6b3;
     }
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 50px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #00ffcc;
+      border: none;
+      cursor: pointer;
+      font-size: 30px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      box-shadow: 0px 0px 10px rgba(0, 255, 204, 0.7);
+      display: none;
+    }
+    .arrow:hover {
+      background-color: #00e6b3;
+    }
+    #arrow-left { left: 10px; }
+    #arrow-right { right: 10px; }
   </style>
 </head>
 <body>
   <canvas></canvas>
+  <div id="ui-overlay">
+    <button id="resetCamera">Se Replacer</button>
+    <button id="toggleZoom">Zoom</button>
+  </div>
+  <button id="arrow-left" class="arrow">&lt;</button>
+  <button id="arrow-right" class="arrow">&gt;</button>
   <button id="enableGyroscope">Activer Gyroscope</button>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    // Initialisation de la scène
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // Gestion du gyroscope
+    // Variables
+    let isDragging = false;
+    let isTouchDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let touchStartPosition = { x: 0, y: 0 };
+
+    // Initialisation de la caméra
+    camera.position.set(0, 0, 5);
+
+    // Ajout d'un objet simple à la scène (exemple : cube)
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ffcc });
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    // Animation
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Gestion tactile pour rotation de la caméra
+    window.addEventListener('touchstart', (event) => {
+      if (event.touches.length === 1) {
+        isTouchDragging = true;
+        touchStartPosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+      }
+    });
+
+    window.addEventListener('touchmove', (event) => {
+      if (isTouchDragging) {
+        const touchMovePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+        const deltaMove = {
+          x: touchMovePosition.x - touchStartPosition.x,
+          y: touchMovePosition.y - touchStartPosition.y,
+        };
+
+        camera.rotation.y -= deltaMove.x * 0.005;
+        camera.rotation.x -= deltaMove.y * 0.005;
+
+        touchStartPosition = touchMovePosition;
+      }
+    });
+
+    window.addEventListener('touchend', () => {
+      isTouchDragging = false;
+    });
+
+    // Déplacement avec gyroscope
     document.getElementById('enableGyroscope').addEventListener('click', () => {
       if (window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', (event) => {
           const rotationX = event.beta; // Inclinaison avant-arrière
           const rotationY = event.gamma; // Inclinaison gauche-droite
 
-          // Ajuster la caméra en fonction des rotations
-          camera.rotation.x = THREE.MathUtils.degToRad(rotationX / 2); // Sensibilité divisée par 2
+          camera.rotation.x = THREE.MathUtils.degToRad(rotationX / 2);
           camera.rotation.y = THREE.MathUtils.degToRad(rotationY / 2);
         });
 
@@ -57,12 +163,36 @@
       }
     });
 
-    // Animation
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    }
-    animate();
+    // Gestion des clics pour la souris
+    window.addEventListener('mousedown', (event) => {
+      isDragging = true;
+      previousMousePosition = { x: event.clientX, y: event.clientY };
+    });
+
+    window.addEventListener('mousemove', (event) => {
+      if (isDragging) {
+        const deltaMove = {
+          x: event.clientX - previousMousePosition.x,
+          y: event.clientY - previousMousePosition.y,
+        };
+
+        camera.rotation.y -= deltaMove.x * 0.005;
+        camera.rotation.x -= deltaMove.y * 0.005;
+
+        previousMousePosition = { x: event.clientX, y: event.clientY };
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    // Redimensionnement de la fenêtre
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
   </script>
 </body>
 </html>
