@@ -411,6 +411,36 @@ document.getElementById('toggleZoom').addEventListener('touchstart', () => {
 document.getElementById('resetCamera').addEventListener('touchstart', () => {
   document.getElementById('resetCamera').click(); // Simuler un clic sur le bouton Reset
 });
+let isTouchDragging = false;
+let touchStartPosition = { x: 0, y: 0 };
+
+window.addEventListener('touchstart', (event) => {
+  if (event.touches.length === 1) { // S'assurer qu'il s'agit d'un seul doigt
+    isTouchDragging = true;
+    touchStartPosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+  }
+});
+
+window.addEventListener('touchmove', (event) => {
+  if (isTouchDragging) {
+    const touchMovePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    const deltaMove = {
+      x: touchMovePosition.x - touchStartPosition.x,
+      y: touchMovePosition.y - touchStartPosition.y,
+    };
+
+    // Appliquer les rotations à la caméra
+    camera.rotation.y -= deltaMove.x * 0.005; // Ajuster la sensibilité ici
+    camera.rotation.x -= deltaMove.y * 0.005;
+
+    // Mettre à jour la position initiale pour le prochain mouvement
+    touchStartPosition = touchMovePosition;
+  }
+});
+
+window.addEventListener('touchend', () => {
+  isTouchDragging = false;
+});
 
   </script>
 </body>
