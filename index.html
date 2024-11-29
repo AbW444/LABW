@@ -440,6 +440,60 @@ window.addEventListener('touchmove', (event) => {
 
 window.addEventListener('touchend', () => {
   isTouchDragging = false;
+////////////////////////////////////////////////////////////////////
+});
+let isTouchDragging = false;
+let touchStartPosition = { x: 0, y: 0 };
+let initialPinchDistance = 0;
+let cameraZoomFactor = 1;
+
+// Gérer le début du toucher
+window.addEventListener('touchstart', (event) => {
+  if (event.touches.length === 1) { // Rotation avec un seul doigt
+    isTouchDragging = true;
+    touchStartPosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+  } else if (event.touches.length === 2) { // Début du zoom
+    initialPinchDistance = Math.hypot(
+      event.touches[0].clientX - event.touches[1].clientX,
+      event.touches[0].clientY - event.touches[1].clientY
+    );
+  }
+});
+
+// Gérer les mouvements tactiles
+window.addEventListener('touchmove', (event) => {
+  if (event.touches.length === 1 && isTouchDragging) { // Rotation
+    const touchMovePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    const deltaMove = {
+      x: touchMovePosition.x - touchStartPosition.x,
+      y: touchMovePosition.y - touchStartPosition.y,
+    };
+
+    // Appliquer les rotations à la caméra
+    camera.rotation.y -= deltaMove.x * 0.005; // Ajuster la sensibilité ici
+    camera.rotation.x -= deltaMove.y * 0.005;
+
+    // Mettre à jour la position initiale
+    touchStartPosition = touchMovePosition;
+  } else if (event.touches.length === 2) { // Zoom
+    const currentPinchDistance = Math.hypot(
+      event.touches[0].clientX - event.touches[1].clientX,
+      event.touches[0].clientY - event.touches[1].clientY
+    );
+
+    const pinchDelta = currentPinchDistance - initialPinchDistance;
+    cameraZoomFactor += pinchDelta * 0.001; // Ajuster la sensibilité ici
+    cameraZoomFactor = Math.max(0.5, Math.min(2, cameraZoomFactor)); // Limiter le zoom
+    camera.zoom = cameraZoomFactor;
+    camera.updateProjectionMatrix();
+
+    initialPinchDistance = currentPinchDistance;
+  }
+});
+
+// Gérer la fin du toucher
+window.addEventListener('touchend', () => {
+  isTouchDragging = false;
 });
 
   </script>
