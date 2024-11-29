@@ -465,8 +465,8 @@ window.addEventListener('touchmove', (event) => {
     };
 
     // Appliquer les rotations à la caméra
-    camera.rotation.y -= deltaMove.x * 0.005; // Ajuster la sensibilité ici
-    camera.rotation.x -= deltaMove.y * 0.005;
+    camera.rotation.y -= deltaMove.x * 0.002; // Ajuster la sensibilité ici
+    camera.rotation.x -= deltaMove.y * 0.002;
 
     // Mettre à jour la position initiale pour le prochain mouvement
     touchStartPosition = touchMovePosition;
