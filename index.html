@@ -389,14 +389,6 @@
       }
       requestAnimationFrame(animateZoom);
     });
-	// Charger l'image initiale
-loadImage(currentImageIndex);
-
-// Navigation avec les flèches
-document.getElementById('arrow-left').addEventListener('click', () => {
-  currentImageIndex = currentImageIndex === 0 ? maxImageIndex : currentImageIndex - 1;
-  loadImage(currentImageIndex);
-});
 
 document.getElementById('arrow-right').addEventListener('click', () => {
   currentImageIndex = currentImageIndex === maxImageIndex ? 0 : currentImageIndex + 1;
