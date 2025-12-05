@@ -65,8 +65,8 @@
     .arrow:hover {
       background-color: #00e6b3;
     }
-    #arrow-left { left: 10px; }
-    #arrow-right { right: 10px; }
+    #arrow-left { left: 80px; }
+    #arrow-right { right: 80px; }
     #intro-overlay {
       position: absolute;
       top: 0;
@@ -115,7 +115,7 @@
       left: 50%;
       transform: translateX(-50%);
       color: #00fcfd;
-      font-size: clamp(20px, 4vw, 32px);
+      font-size: clamp(32px, 6vw, 56px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
       font-style: normal;
@@ -321,7 +321,7 @@
 
     // UI Overlay - Interaction utilisateur
     document.getElementById('resetCamera').addEventListener('click', () => {
-      camera.position.set(0, 0, 20); // Position de la caméra en zoom arrière
+      camera.position.set(0, 0, 30); // Position de la caméra en zoom arrière
       camera.lookAt(0, 0, 0);
     });
 
@@ -329,7 +329,7 @@
       const zoomDuration = 1500;
       const startPosition = camera.position.clone();
       const targetPosition = isZoomedIn
-        ? new THREE.Vector3(0, 0, 20)
+        ? new THREE.Vector3(0, 0, 30)
         : new THREE.Vector3(0, 0, 2);
 
       const startTime = performance.now();
@@ -394,7 +394,7 @@
       // Déclencher le zoom arrière de la caméra
       const zoomDuration = 1500;
       const startPosition = camera.position.clone();
-      const targetPosition = new THREE.Vector3(0, 0, 20);
+      const targetPosition = new THREE.Vector3(0, 0, 30);
       const startTime = performance.now();
       function animateZoom(currentTime) {
         const elapsed = currentTime - startTime;
@@ -407,19 +407,6 @@
       }
       requestAnimationFrame(animateZoom);
     });
-	// Charger l'image initiale
-loadImage(currentImageIndex);
-
-// Navigation avec les flèches
-document.getElementById('arrow-left').addEventListener('click', () => {
-  currentImageIndex = currentImageIndex === 0 ? maxImageIndex : currentImageIndex - 1;
-  loadImage(currentImageIndex);
-});
-
-document.getElementById('arrow-right').addEventListener('click', () => {
-  currentImageIndex = currentImageIndex === maxImageIndex ? 0 : currentImageIndex + 1;
-  loadImage(currentImageIndex);
-});
 
 // Ajouter des événements tactiles pour smartphone
 let touchStartX = 0;
