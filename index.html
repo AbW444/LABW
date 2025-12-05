@@ -18,6 +18,8 @@
       padding: 10px;
       border-radius: 10px;
       display: none;
+      opacity: 0;
+      transition: opacity 1.5s ease-in;
     }
     #ui-overlay button {
       background-color: #00fcfd;
@@ -61,7 +63,8 @@
       border-radius: 50%;
       box-shadow: 0px 0px 10px rgba(0, 252, 253, 0.7);
       z-index: 10;
-      transition: background-color 0.3s, color 0.3s;
+      opacity: 0;
+      transition: background-color 0.3s, color 0.3s, opacity 1.5s ease-in;
       display: none;
     }
     .arrow:hover {
@@ -128,6 +131,8 @@
       cursor: pointer;
       padding: 10px 20px;
       white-space: nowrap;
+      opacity: 0;
+      transition: opacity 1.5s ease-in;
     }
   </style>
   <link rel="stylesheet" href="https://use.typekit.net/rdj2icn.css">
@@ -534,12 +539,26 @@
       overlay.style.opacity = '0';
       setTimeout(() => {
         overlay.style.display = 'none';
-      }, 1000);
 
-      document.getElementById('page-title').style.display = 'block';
-      document.getElementById('ui-overlay').style.display = 'flex';
-      document.getElementById('arrow-left').style.display = 'flex';
-      document.getElementById('arrow-right').style.display = 'flex';
+        // Afficher les éléments et les faire apparaître progressivement
+        const pageTitle = document.getElementById('page-title');
+        const uiOverlay = document.getElementById('ui-overlay');
+        const arrowLeft = document.getElementById('arrow-left');
+        const arrowRight = document.getElementById('arrow-right');
+
+        pageTitle.style.display = 'block';
+        uiOverlay.style.display = 'flex';
+        arrowLeft.style.display = 'flex';
+        arrowRight.style.display = 'flex';
+
+        // Déclencher l'animation d'opacité après un court délai
+        setTimeout(() => {
+          pageTitle.style.opacity = '1';
+          uiOverlay.style.opacity = '1';
+          arrowLeft.style.opacity = '1';
+          arrowRight.style.opacity = '1';
+        }, 50);
+      }, 1000);
 
       // Déclencher le zoom arrière de la caméra
       const zoomDuration = 1500;
