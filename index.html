@@ -35,11 +35,8 @@
       font-style: normal;
       transition: box-shadow 0.3s;
     }
-    #resetCamera:hover {
+    #resetCamera:hover, #toggleZoom:hover {
       box-shadow: 0px 0px 15px rgba(0, 252, 253, 1);
-    }
-    #toggleZoom:hover {
-      box-shadow: 0px 0px 15px rgba(255, 100, 255, 1);
     }
     #ui-overlay button:focus {
       outline: none;
@@ -116,7 +113,8 @@
       font-size: 216px;
       cursor: pointer;
       font-weight: 900;
-      transition: color 0.3s, background-color 0.3s;
+      opacity: 0;
+      transition: color 0.3s, background-color 0.3s, opacity 2s ease-out;
     }
     #startButton:hover {
       background-color: rgba(106, 13, 173, 0.3); /* Changer la couleur de surbrillance en bleu/violet avec une opacité de 30% */
@@ -663,16 +661,28 @@ window.addEventListener('touchend', () => {
 window.addEventListener('DOMContentLoaded', () => {
   const introOverlay = document.getElementById('intro-overlay');
   const titleContainer = document.getElementById('title-container');
+  const startButton = document.getElementById('startButton');
 
-  // Faire disparaître brièvement le titre puis le faire réapparaître
+  // Séquence d'animation fluide
+  // Phase 1 (0-250ms): titre commence à disparaître
   setTimeout(() => {
     titleContainer.style.opacity = '0';
   }, 250);
 
-  // À 2 secondes : fond à opacité 0.4 et titre à opacité 1
+  // Phase 2 (500ms): titre commence à réapparaître
+  setTimeout(() => {
+    titleContainer.style.opacity = '0.5';
+  }, 500);
+
+  // Phase 3 (1500ms): tout devient visible progressivement
   setTimeout(() => {
     introOverlay.style.background = 'rgba(0, 0, 0, 0.4)';
     titleContainer.style.opacity = '1';
+  }, 1500);
+
+  // Phase 4 (2000ms): bouton >> apparaît
+  setTimeout(() => {
+    startButton.style.opacity = '1';
   }, 2000);
 });
 
