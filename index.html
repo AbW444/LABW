@@ -15,10 +15,8 @@
       display: flex;
       flex-direction: row;
       gap: 10px;
-      background: rgba(0, 0, 0, 0.7);
       padding: 10px;
       border-radius: 10px;
-      box-shadow: 0px 0px 10px rgba(0, 252, 253, 0.7);
       display: none;
     }
     #ui-overlay button {
@@ -92,7 +90,7 @@
       padding-left: 40px;
       box-sizing: border-box;
       overflow: hidden;
-      transition: opacity 1.5s ease-out;
+      transition: opacity 0.6s ease-out;
     }
     #title-container {
       text-align: left;
@@ -162,7 +160,7 @@
     let particles;
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
-    let isZoomedIn = true;
+    let isZoomedIn = false;
     let currentImageIndex = 0;
     const maxImageIndex = 7;
 
@@ -515,7 +513,7 @@
       overlay.style.opacity = '0';
       setTimeout(() => {
         overlay.style.display = 'none';
-      }, 1500);
+      }, 600);
 
       document.getElementById('page-title').style.display = 'block';
       document.getElementById('ui-overlay').style.display = 'flex';
