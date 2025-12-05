@@ -248,10 +248,15 @@
     });
 
     const starVertices = [];
+    const sphereRadius = 400; // Rayon de la sphère d'étoiles
     for (let i = 0; i < 3000; i++) {
-      const x = (Math.random() - 0.5) * 500; // Plus éloignées
-      const y = (Math.random() - 0.5) * 500;
-      const z = (Math.random() - 0.5) * 500;
+      // Placement sur une sphère
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
+
+      const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
+      const y = sphereRadius * Math.sin(phi) * Math.sin(theta);
+      const z = sphereRadius * Math.cos(phi);
       starVertices.push(x, y, z);
     }
 
@@ -273,19 +278,25 @@
       const startY = (Math.random() - 0.5) * 400;
       const startZ = -300;
 
-      const points = [];
-      points.push(new THREE.Vector3(startX, startY, startZ));
-      points.push(new THREE.Vector3(startX - 10, startY - 10, startZ + 20));
+      const velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 2,
+        -Math.random() * 2 - 1,
+        Math.random() * 3 + 2
+      );
 
-      geometry.setFromPoints(points);
+      // Créer la traînée dans la direction du mouvement
+      const positions = new Float32Array([
+        startX, startY, startZ,
+        startX - velocity.x * 3, startY - velocity.y * 3, startZ - velocity.z * 3
+      ]);
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.attributes.position.setUsage(THREE.DynamicDrawUsage);
       const shootingStar = new THREE.Line(geometry, material);
       shootingStar.userData = {
-        velocity: new THREE.Vector3(
-          (Math.random() - 0.5) * 2,
-          -Math.random() * 2 - 1,
-          Math.random() * 3 + 2
-        ),
-        life: 100
+        velocity: velocity,
+        life: 100,
+        startPos: new THREE.Vector3(startX, startY, startZ)
       };
       scene.add(shootingStar);
       shootingStars.push(shootingStar);
@@ -353,20 +364,28 @@
     function animate() {
       requestAnimationFrame(animate);
 
-      // Mouvement léger des étoiles
-      const starPositions = stars.geometry.attributes.position.array;
-      for (let i = 0; i < starPositions.length; i += 3) {
-        starPositions[i] += Math.sin(Date.now() * 0.0001 + i) * 0.002;
-        starPositions[i + 1] += Math.cos(Date.now() * 0.0001 + i) * 0.002;
-      }
-      stars.geometry.attributes.position.needsUpdate = true;
+      // Faire tourner la sphère d'étoiles autour de nous
+      stars.rotation.y += 0.0002;
+      stars.rotation.x += 0.0001;
 
       // Animer les étoiles filantes
       for (let i = shootingStars.length - 1; i >= 0; i--) {
         const star = shootingStars[i];
-        star.position.add(star.userData.velocity);
+        star.userData.startPos.add(star.userData.velocity);
         star.userData.life--;
         star.material.opacity = star.userData.life / 100;
+
+        // Mettre à jour la traînée pour qu'elle suive le mouvement
+        const positions = star.geometry.attributes.position.array;
+        const vel = star.userData.velocity;
+        const pos = star.userData.startPos;
+        positions[0] = pos.x;
+        positions[1] = pos.y;
+        positions[2] = pos.z;
+        positions[3] = pos.x - vel.x * 3;
+        positions[4] = pos.y - vel.y * 3;
+        positions[5] = pos.z - vel.z * 3;
+        star.geometry.attributes.position.needsUpdate = true;
 
         if (star.userData.life <= 0) {
           scene.remove(star);
@@ -452,16 +471,16 @@
       }
     });
 
-    // Apparition et disparition aléatoires des particules (moins saccadées)
+    // Apparition et disparition aléatoires des particules
     setInterval(() => {
       if (particles) {
         const positions = particles.geometry.attributes.position.array;
         for (let i = 0; i < positions.length; i += 3) {
-          positions[i + 2] += (Math.random() - 0.5) * 0.03;
+          positions[i + 2] += (Math.random() - 0.5) * 0.1;
         }
         particles.geometry.attributes.position.needsUpdate = true;
       }
-    }, 100);
+    }, 50);
 
     // Masquer l'interface d'accueil lorsque l'utilisateur commence
     document.getElementById('startButton').addEventListener('click', () => {
