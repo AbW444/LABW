@@ -31,6 +31,7 @@
       cursor: pointer;
       border-radius: 5px;
       font-weight: bold;
+      box-shadow: 0px 0px 10px rgba(0, 252, 253, 0.7);
       transition: background-color 0.3s;
     }
     #ui-overlay button:hover {
@@ -169,6 +170,8 @@
     let currentImageIndex = 0;
     const maxImageIndex = 7;
     let referenceHeight = null; // Hauteur de référence basée sur l'image 4
+    let isResetAnimating = false; // Flag pour l'animation de replacement
+    let cancelResetAnimation = false; // Flag pour annuler l'animation
 
     const textureLoader = new THREE.TextureLoader();
 
@@ -458,7 +461,17 @@
       const targetPosition = new THREE.Vector3(0, 0, 25);
       const startTime = performance.now();
 
+      isResetAnimating = true;
+      cancelResetAnimation = false;
+
       function animateReset(currentTime) {
+        // Vérifier si l'animation doit être annulée
+        if (cancelResetAnimation) {
+          isResetAnimating = false;
+          cancelResetAnimation = false;
+          return;
+        }
+
         const elapsed = currentTime - startTime;
         const linearProgress = Math.min(elapsed / resetDuration, 1);
         const easedProgress = easeInOutCubic(linearProgress);
@@ -468,6 +481,8 @@
 
         if (linearProgress < 1) {
           requestAnimationFrame(animateReset);
+        } else {
+          isResetAnimating = false;
         }
       }
       requestAnimationFrame(animateReset);
@@ -500,6 +515,11 @@
     window.addEventListener('mousedown', (event) => {
       isDragging = true;
       previousMousePosition = { x: event.clientX, y: event.clientY };
+
+      // Annuler l'animation de replacement si en cours
+      if (isResetAnimating) {
+        cancelResetAnimation = true;
+      }
     });
 
     window.addEventListener('mouseup', () => {
@@ -606,6 +626,11 @@ window.addEventListener('touchstart', (event) => {
   if (event.touches.length === 1) { // S'assurer qu'il s'agit d'un seul doigt
     isTouchDragging = true;
     touchStartPosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+
+    // Annuler l'animation de replacement si en cours
+    if (isResetAnimating) {
+      cancelResetAnimation = true;
+    }
   }
 });
 
