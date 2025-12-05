@@ -18,11 +18,11 @@
       background: rgba(0, 0, 0, 0.7);
       padding: 10px;
       border-radius: 10px;
-      box-shadow: 0px 0px 10px rgba(0, 222, 236, 0.7);
+      box-shadow: 0px 0px 10px rgba(0, 252, 253, 0.7);
       display: none;
     }
     #ui-overlay button {
-      background-color: #00deec;
+      background-color: #00fcfd;
       color: #0e0e0e;
       border: none;
       padding: 15px 20px;
@@ -48,7 +48,7 @@
       width: 50px;
       height: 50px;
       background-color: rgba(0, 0, 0, 0.7);
-      color: #00deec;
+      color: #00fcfd;
       border: none;
       cursor: pointer;
       font-size: 30px;
@@ -57,7 +57,7 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      box-shadow: 0px 0px 10px rgba(0, 222, 236, 0.7);
+      box-shadow: 0px 0px 10px rgba(0, 252, 253, 0.7);
       z-index: 10;
       transition: background-color 0.3s;
       display: none;
@@ -75,32 +75,35 @@
       height: 100%;
       background: url('path/to/your/image.png'); /* Utiliser une image pour le fond */
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
       flex-direction: column;
-      color: #00deec;
+      color: #00fcfd;
       font-size: clamp(80px, 15vw, 216px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
       font-style: normal;
       z-index: 20;
-      padding: 20px;
+      padding-left: 40px;
       box-sizing: border-box;
       overflow: hidden;
-      text-align: center;
+    }
+    #title-container {
+      text-align: left;
+      line-height: 0.9;
     }
     #startButton {
-      position: relative;
-      margin-top: 30px;
+      position: absolute;
+      bottom: 40%;
+      left: 40px;
       background-color: transparent;
-      color: #00deec;
-      border: 2px solid #00deec;
-      padding: 15px 40px;
-      font-size: clamp(40px, 8vw, 80px);
+      color: #00fcfd;
+      border: none;
+      padding: 0;
+      font-size: 216px;
       cursor: pointer;
       font-weight: 900;
       transition: color 0.3s, background-color 0.3s;
-      border-radius: 10px;
     }
     #startButton:hover {
       background-color: rgba(106, 13, 173, 0.3); /* Changer la couleur de surbrillance en bleu/violet avec une opacité de 30% */
@@ -110,7 +113,7 @@
       top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      color: #00deec;
+      color: #00fcfd;
       font-size: clamp(20px, 4vw, 32px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
@@ -128,7 +131,10 @@
 <body>
   <div id="page-title" onclick="location.reload();">AURORA UNREALIS</div>
   <div id="intro-overlay">
-    <div>AURORA UNREALIS</div>
+    <div id="title-container">
+      <div>AURORA</div>
+      <div>UNREALIS</div>
+    </div>
     <button id="startButton">&gt;&gt;</button>
   </div>
   <div id="ui-overlay">
