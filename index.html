@@ -30,12 +30,16 @@
       font-size: 16px;
       cursor: pointer;
       border-radius: 5px;
-      font-weight: bold;
-      box-shadow: 0px 0px 10px rgba(0, 252, 253, 0.7);
-      transition: background-color 0.3s;
+      font-family: "new-astro", sans-serif;
+      font-weight: 700;
+      font-style: normal;
+      transition: box-shadow 0.3s;
     }
-    #ui-overlay button:hover {
-      background-color: #00e6b3;
+    #resetCamera:hover {
+      box-shadow: 0px 0px 15px rgba(0, 252, 253, 1);
+    }
+    #toggleZoom:hover {
+      box-shadow: 0px 0px 15px rgba(255, 100, 255, 1);
     }
     #ui-overlay button:focus {
       outline: none;
@@ -149,8 +153,8 @@
     <button id="startButton">&gt;&gt;</button>
   </div>
   <div id="ui-overlay">
-    <button id="resetCamera">Se Replacer</button>
-    <button id="toggleZoom">Zoom</button>
+    <button id="resetCamera">se replacer</button>
+    <button id="toggleZoom">zoom</button>
   </div>
   <button id="arrow-left" class="arrow">&lt;</button>
   <button id="arrow-right" class="arrow">&gt;</button>
@@ -205,7 +209,7 @@
         // Calculer le facteur d'échelle pour que toutes les images aient la même hauteur que l'image 4
         let scaleFactor = 50; // Valeur par défaut
         if (referenceHeight !== null) {
-          scaleFactor = 50 * (imgHeight / referenceHeight);
+          scaleFactor = (50 * (imgHeight / referenceHeight)) / 1.15; // Agrandir légèrement la hauteur
         }
 
         const particleGeometry = new THREE.BufferGeometry();
