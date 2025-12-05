@@ -20,34 +20,27 @@
       display: none;
     }
     #ui-overlay button {
-      width: 50px;
-      height: 50px;
-      background-color: rgba(0, 0, 0, 0.7);
-      color: #00fcfd;
+      background-color: #00fcfd;
+      color: #0e0e0e;
       border: none;
       outline: none;
-      font-size: 24px;
+      padding: 15px 20px;
+      font-size: 16px;
       cursor: pointer;
-      border-radius: 50%;
+      border-radius: 5px;
       font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0px 0px 10px rgba(0, 252, 253, 0.7);
-      transition: background-color 0.3s, color 0.3s;
+      transition: background-color 0.3s;
     }
     #ui-overlay button:hover {
-      background-color: #00fcfd;
-      color: #000000;
+      background-color: #00e6b3;
     }
     #ui-overlay button:focus {
       outline: none;
     }
     @media (max-width: 768px) {
       #ui-overlay button {
-        width: 45px;
-        height: 45px;
-        font-size: 20px;
+        padding: 10px 15px;
+        font-size: 14px;
       }
     }
     .arrow {
@@ -97,7 +90,7 @@
       padding-left: 40px;
       box-sizing: border-box;
       overflow: hidden;
-      transition: opacity 1.5s ease-out;
+      transition: opacity 1.0s ease-out;
     }
     #title-container {
       text-align: left;
@@ -150,8 +143,8 @@
     <button id="startButton">&gt;&gt;</button>
   </div>
   <div id="ui-overlay">
-    <button id="resetCamera">↻</button>
-    <button id="toggleZoom">±</button>
+    <button id="resetCamera">Se Replacer</button>
+    <button id="toggleZoom">Zoom</button>
   </div>
   <button id="arrow-left" class="arrow">&lt;</button>
   <button id="arrow-right" class="arrow">&gt;</button>
@@ -170,6 +163,7 @@
     let isZoomedIn = false;
     let currentImageIndex = 0;
     const maxImageIndex = 7;
+    let referenceHeight = null; // Hauteur de référence basée sur l'image 4
 
     const textureLoader = new THREE.TextureLoader();
 
@@ -195,6 +189,17 @@
         context.drawImage(texture.image, 0, 0, imgWidth, imgHeight);
         const imgData = context.getImageData(0, 0, imgWidth, imgHeight);
 
+        // Définir la hauteur de référence avec l'image 4
+        if (imageIndex === 4 && referenceHeight === null) {
+          referenceHeight = imgHeight;
+        }
+
+        // Calculer le facteur d'échelle pour que toutes les images aient la même hauteur que l'image 4
+        let scaleFactor = 50; // Valeur par défaut
+        if (referenceHeight !== null) {
+          scaleFactor = 50 * (imgHeight / referenceHeight);
+        }
+
         const particleGeometry = new THREE.BufferGeometry();
         const particleMaterial = new THREE.PointsMaterial({
           size: 0.02,
@@ -219,8 +224,8 @@
               g = saturated.g;
               b = saturated.b;
 
-              const posX = (x - imgWidth / 2) / 50;
-              const posY = (y - imgHeight / 2) / 50;
+              const posX = (x - imgWidth / 2) / scaleFactor;
+              const posY = (y - imgHeight / 2) / scaleFactor;
               const posZ = (Math.random() - 0.5) * 5;
               particleVertices.push(posX, posY, posZ);
               particleColors.push(r, g, b);
@@ -365,8 +370,17 @@
     const snow = new THREE.Points(snowGeometry, snowMaterial);
     scene.add(snow);
 
-    // Charger l'image initiale
-    loadImage(currentImageIndex);
+    // Précharger l'image 4 pour définir la hauteur de référence
+    const referencePath = `./Projet_test_HLS_LMPI/Ressources/test%20004.jpg`;
+    textureLoader.load(referencePath, function (texture) {
+      referenceHeight = texture.image.height;
+      // Charger l'image initiale après avoir défini la référence
+      loadImage(currentImageIndex);
+    }, undefined, function (err) {
+      console.error('Erreur lors du préchargement de l\'image de référence:', err);
+      // Charger quand même l'image initiale
+      loadImage(currentImageIndex);
+    });
 
     // Navigation avec les flèches
     document.getElementById('arrow-left').addEventListener('click', () => {
@@ -520,7 +534,7 @@
       overlay.style.opacity = '0';
       setTimeout(() => {
         overlay.style.display = 'none';
-      }, 1500);
+      }, 1000);
 
       document.getElementById('page-title').style.display = 'block';
       document.getElementById('ui-overlay').style.display = 'flex';
