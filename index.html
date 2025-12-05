@@ -266,17 +266,35 @@
 
     // Ajouter des étoiles filantes
     const shootingStars = [];
+    const MAX_SHOOTING_STARS = 3;
+    const MIN_DISTANCE = 100; // Distance minimale entre étoiles filantes
+
     function createShootingStar() {
+      // Limiter à 3 étoiles filantes maximum
+      if (shootingStars.length >= MAX_SHOOTING_STARS) {
+        return;
+      }
+
+      const startX = (Math.random() - 0.5) * 400;
+      const startY = (Math.random() - 0.5) * 400;
+      const startZ = -300;
+      const newPos = new THREE.Vector3(startX, startY, startZ);
+
+      // Vérifier la distance avec les étoiles existantes
+      for (let i = 0; i < shootingStars.length; i++) {
+        const existingPos = shootingStars[i].userData.startPos;
+        const distance = newPos.distanceTo(existingPos);
+        if (distance < MIN_DISTANCE) {
+          return; // Trop proche, ne pas créer
+        }
+      }
+
       const geometry = new THREE.BufferGeometry();
       const material = new THREE.LineBasicMaterial({
         color: 0xffffff,
         transparent: true,
         opacity: 0.8
       });
-
-      const startX = (Math.random() - 0.5) * 400;
-      const startY = (Math.random() - 0.5) * 400;
-      const startZ = -300;
 
       const velocity = new THREE.Vector3(
         (Math.random() - 0.5) * 2,
@@ -296,7 +314,7 @@
       shootingStar.userData = {
         velocity: velocity,
         life: 100,
-        startPos: new THREE.Vector3(startX, startY, startZ)
+        startPos: newPos
       };
       scene.add(shootingStar);
       shootingStars.push(shootingStar);
@@ -404,20 +422,27 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
+    // Fonction d'easing pour mouvement parabolique
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
     // UI Overlay - Interaction utilisateur
     document.getElementById('resetCamera').addEventListener('click', () => {
-      const resetDuration = 800;
+      const resetDuration = 1200;
       const startPosition = camera.position.clone();
       const targetPosition = new THREE.Vector3(0, 0, 25);
       const startTime = performance.now();
 
       function animateReset(currentTime) {
         const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / resetDuration, 1);
-        camera.position.lerpVectors(startPosition, targetPosition, progress);
+        const linearProgress = Math.min(elapsed / resetDuration, 1);
+        const easedProgress = easeInOutCubic(linearProgress);
+
+        camera.position.lerpVectors(startPosition, targetPosition, easedProgress);
         camera.lookAt(0, 0, 0);
 
-        if (progress < 1) {
+        if (linearProgress < 1) {
           requestAnimationFrame(animateReset);
         }
       }
