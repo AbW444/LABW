@@ -20,27 +20,34 @@
       display: none;
     }
     #ui-overlay button {
-      background-color: #00fcfd;
-      color: #0e0e0e;
+      width: 50px;
+      height: 50px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #00fcfd;
       border: none;
       outline: none;
-      padding: 15px 20px;
-      font-size: 16px;
+      font-size: 24px;
       cursor: pointer;
-      border-radius: 5px;
+      border-radius: 50%;
       font-weight: bold;
-      transition: background-color 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0px 0px 10px rgba(0, 252, 253, 0.7);
+      transition: background-color 0.3s, color 0.3s;
     }
     #ui-overlay button:hover {
-      background-color: #00e6b3;
+      background-color: #00fcfd;
+      color: #000000;
     }
     #ui-overlay button:focus {
       outline: none;
     }
     @media (max-width: 768px) {
       #ui-overlay button {
-        padding: 10px 15px;
-        font-size: 14px;
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
       }
     }
     .arrow {
@@ -90,7 +97,7 @@
       padding-left: 40px;
       box-sizing: border-box;
       overflow: hidden;
-      transition: opacity 0.6s ease-out;
+      transition: opacity 1.5s ease-out;
     }
     #title-container {
       text-align: left;
@@ -143,8 +150,8 @@
     <button id="startButton">&gt;&gt;</button>
   </div>
   <div id="ui-overlay">
-    <button id="resetCamera">Se Replacer</button>
-    <button id="toggleZoom">Zoom</button>
+    <button id="resetCamera">↻</button>
+    <button id="toggleZoom">±</button>
   </div>
   <button id="arrow-left" class="arrow">&lt;</button>
   <button id="arrow-right" class="arrow">&gt;</button>
@@ -513,7 +520,7 @@
       overlay.style.opacity = '0';
       setTimeout(() => {
         overlay.style.display = 'none';
-      }, 600);
+      }, 1500);
 
       document.getElementById('page-title').style.display = 'block';
       document.getElementById('ui-overlay').style.display = 'flex';
