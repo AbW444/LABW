@@ -25,6 +25,7 @@
       background-color: #00fcfd;
       color: #0e0e0e;
       border: none;
+      outline: none;
       padding: 15px 20px;
       font-size: 16px;
       cursor: pointer;
@@ -34,6 +35,9 @@
     }
     #ui-overlay button:hover {
       background-color: #00e6b3;
+    }
+    #ui-overlay button:focus {
+      outline: none;
     }
     @media (max-width: 768px) {
       #ui-overlay button {
@@ -59,11 +63,12 @@
       border-radius: 50%;
       box-shadow: 0px 0px 10px rgba(0, 252, 253, 0.7);
       z-index: 10;
-      transition: background-color 0.3s;
+      transition: background-color 0.3s, color 0.3s;
       display: none;
     }
     .arrow:hover {
-      background-color: #00e6b3;
+      background-color: #00fcfd;
+      color: #000000;
     }
     #arrow-left { left: 80px; }
     #arrow-right { right: 80px; }
@@ -73,7 +78,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: url('path/to/your/image.png'); /* Utiliser une image pour le fond */
+      background: rgba(0, 0, 0, 0.4);
       display: flex;
       align-items: flex-start;
       justify-content: center;
@@ -87,6 +92,7 @@
       padding-left: 40px;
       box-sizing: border-box;
       overflow: hidden;
+      transition: opacity 1.5s ease-out;
     }
     #title-container {
       text-align: left;
@@ -95,7 +101,7 @@
     #startButton {
       position: absolute;
       top: 50%;
-      left: 75%;
+      left: 68%;
       transform: translate(-50%, -50%);
       background-color: transparent;
       color: #00fcfd;
@@ -111,11 +117,11 @@
     }
     #page-title {
       position: absolute;
-      top: 20px;
+      top: 10px;
       left: 50%;
       transform: translateX(-50%);
       color: #00fcfd;
-      font-size: clamp(32px, 6vw, 56px);
+      font-size: clamp(28px, 5vw, 48px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
       font-style: normal;
@@ -253,6 +259,45 @@
     const stars = new THREE.Points(starGeometry, starMaterial);
     scene.add(stars);
 
+    // Ajouter des étoiles filantes
+    const shootingStars = [];
+    function createShootingStar() {
+      const geometry = new THREE.BufferGeometry();
+      const material = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.8
+      });
+
+      const startX = (Math.random() - 0.5) * 400;
+      const startY = (Math.random() - 0.5) * 400;
+      const startZ = -300;
+
+      const points = [];
+      points.push(new THREE.Vector3(startX, startY, startZ));
+      points.push(new THREE.Vector3(startX - 10, startY - 10, startZ + 20));
+
+      geometry.setFromPoints(points);
+      const shootingStar = new THREE.Line(geometry, material);
+      shootingStar.userData = {
+        velocity: new THREE.Vector3(
+          (Math.random() - 0.5) * 2,
+          -Math.random() * 2 - 1,
+          Math.random() * 3 + 2
+        ),
+        life: 100
+      };
+      scene.add(shootingStar);
+      shootingStars.push(shootingStar);
+    }
+
+    // Créer des étoiles filantes aléatoirement
+    setInterval(() => {
+      if (Math.random() < 0.3) {
+        createShootingStar();
+      }
+    }, 2000);
+
     // Ajouter la Lune à la scène
     const moonGeometry = new THREE.SphereGeometry(5, 32, 32);
     const moonMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xaaaaaa });
@@ -307,8 +352,29 @@
     // Animation
     function animate() {
       requestAnimationFrame(animate);
+
+      // Mouvement léger des étoiles
+      const starPositions = stars.geometry.attributes.position.array;
+      for (let i = 0; i < starPositions.length; i += 3) {
+        starPositions[i] += Math.sin(Date.now() * 0.0001 + i) * 0.002;
+        starPositions[i + 1] += Math.cos(Date.now() * 0.0001 + i) * 0.002;
+      }
+      stars.geometry.attributes.position.needsUpdate = true;
+
+      // Animer les étoiles filantes
+      for (let i = shootingStars.length - 1; i >= 0; i--) {
+        const star = shootingStars[i];
+        star.position.add(star.userData.velocity);
+        star.userData.life--;
+        star.material.opacity = star.userData.life / 100;
+
+        if (star.userData.life <= 0) {
+          scene.remove(star);
+          shootingStars.splice(i, 1);
+        }
+      }
+
       renderer.render(scene, camera);
-      snow.rotation.y += 0.001; // Faire tourner la neige pour un effet subtil
     }
     animate();
 
@@ -321,15 +387,29 @@
 
     // UI Overlay - Interaction utilisateur
     document.getElementById('resetCamera').addEventListener('click', () => {
-      camera.position.set(0, 0, 30); // Position de la caméra en zoom arrière
-      camera.lookAt(0, 0, 0);
+      const resetDuration = 800;
+      const startPosition = camera.position.clone();
+      const targetPosition = new THREE.Vector3(0, 0, 25);
+      const startTime = performance.now();
+
+      function animateReset(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / resetDuration, 1);
+        camera.position.lerpVectors(startPosition, targetPosition, progress);
+        camera.lookAt(0, 0, 0);
+
+        if (progress < 1) {
+          requestAnimationFrame(animateReset);
+        }
+      }
+      requestAnimationFrame(animateReset);
     });
 
     document.getElementById('toggleZoom').addEventListener('click', () => {
       const zoomDuration = 1500;
       const startPosition = camera.position.clone();
       const targetPosition = isZoomedIn
-        ? new THREE.Vector3(0, 0, 30)
+        ? new THREE.Vector3(0, 0, 25)
         : new THREE.Vector3(0, 0, 2);
 
       const startTime = performance.now();
@@ -372,20 +452,27 @@
       }
     });
 
-    // Apparition et disparition aléatoires des particules
+    // Apparition et disparition aléatoires des particules (moins saccadées)
     setInterval(() => {
       if (particles) {
         const positions = particles.geometry.attributes.position.array;
         for (let i = 0; i < positions.length; i += 3) {
-          positions[i + 2] += (Math.random() - 0.5) * 0.1;
+          positions[i + 2] += (Math.random() - 0.5) * 0.03;
         }
         particles.geometry.attributes.position.needsUpdate = true;
       }
-    }, 50);
+    }, 100);
 
     // Masquer l'interface d'accueil lorsque l'utilisateur commence
     document.getElementById('startButton').addEventListener('click', () => {
-      document.getElementById('intro-overlay').style.display = 'none';
+      const overlay = document.getElementById('intro-overlay');
+
+      // Faire disparaître progressivement le fond noir
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 1500);
+
       document.getElementById('page-title').style.display = 'block';
       document.getElementById('ui-overlay').style.display = 'flex';
       document.getElementById('arrow-left').style.display = 'flex';
@@ -394,7 +481,7 @@
       // Déclencher le zoom arrière de la caméra
       const zoomDuration = 1500;
       const startPosition = camera.position.clone();
-      const targetPosition = new THREE.Vector3(0, 0, 30);
+      const targetPosition = new THREE.Vector3(0, 0, 25);
       const startTime = performance.now();
       function animateZoom(currentTime) {
         const elapsed = currentTime - startTime;
