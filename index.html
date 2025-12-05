@@ -18,11 +18,11 @@
       background: rgba(0, 0, 0, 0.7);
       padding: 10px;
       border-radius: 10px;
-      box-shadow: 0px 0px 10px rgba(36, 223, 192, 0.7);
+      box-shadow: 0px 0px 10px rgba(0, 222, 236, 0.7);
       display: none;
     }
     #ui-overlay button {
-      background-color: #24dfc0;
+      background-color: #00deec;
       color: #0e0e0e;
       border: none;
       padding: 15px 20px;
@@ -48,7 +48,7 @@
       width: 50px;
       height: 50px;
       background-color: rgba(0, 0, 0, 0.7);
-      color: #24dfc0;
+      color: #00deec;
       border: none;
       cursor: pointer;
       font-size: 30px;
@@ -57,7 +57,7 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      box-shadow: 0px 0px 10px rgba(36, 223, 192, 0.7);
+      box-shadow: 0px 0px 10px rgba(0, 222, 236, 0.7);
       z-index: 10;
       transition: background-color 0.3s;
       display: none;
@@ -78,42 +78,48 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
-      color: #24dfc0;
-      font-size: 216px;
+      color: #00deec;
+      font-size: clamp(80px, 15vw, 216px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
       font-style: normal;
       z-index: 20;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow: hidden;
+      text-align: center;
     }
     #startButton {
-      position: absolute;
-      top: 50%;
-      left: calc(50% + 280px); /* Ajuster la position après le S */
-      transform: translateY(-50%);
+      position: relative;
+      margin-top: 30px;
       background-color: transparent;
-      color: #24dfc0;
-      border: none;
-      font-size: 216px;
+      color: #00deec;
+      border: 2px solid #00deec;
+      padding: 15px 40px;
+      font-size: clamp(40px, 8vw, 80px);
       cursor: pointer;
-      font-weight: 900; /* Plus épais possible */
+      font-weight: 900;
       transition: color 0.3s, background-color 0.3s;
+      border-radius: 10px;
     }
     #startButton:hover {
       background-color: rgba(106, 13, 173, 0.3); /* Changer la couleur de surbrillance en bleu/violet avec une opacité de 30% */
     }
     #page-title {
       position: absolute;
-      top: 10px;
+      top: 20px;
       left: 50%;
       transform: translateX(-50%);
-      color: #24dfc0;
-      font-size: 28px;
+      color: #00deec;
+      font-size: clamp(20px, 4vw, 32px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
       font-style: normal;
       z-index: 15;
       display: none;
       cursor: pointer;
+      padding: 10px 20px;
+      white-space: nowrap;
     }
   </style>
   <link rel="stylesheet" href="https://use.typekit.net/rdj2icn.css">
