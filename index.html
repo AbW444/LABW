@@ -9,7 +9,7 @@
     canvas { display: block; }
     #ui-overlay {
       position: absolute;
-      bottom: 10px;
+      bottom: 5px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -33,11 +33,12 @@
       font-family: "comma-sans", sans-serif;
       font-weight: 700;
       font-style: normal;
+      text-transform: uppercase;
       transition: background-color 0.3s, box-shadow 0.3s, opacity 1s ease-out;
     }
     #resetCamera:hover, #toggleZoom:hover {
       background-color: rgba(106, 13, 173, 0.6);
-      box-shadow: 0px 0px 40px 20px rgba(106, 13, 173, 0.8);
+      box-shadow: 0px 0px 30px 15px rgba(106, 13, 173, 0.8);
     }
     #ui-overlay button:focus {
       outline: none;
@@ -63,14 +64,14 @@
       justify-content: center;
       z-index: 10;
       opacity: 0;
-      transition: text-shadow 0.3s, background-color 0.3s, opacity 1s ease-out;
+      transition: background-color 0.3s, box-shadow 0.3s, opacity 1s ease-out;
       display: none;
       padding: 10px;
       border-radius: 50%;
     }
     .arrow:hover {
-      background-color: rgba(106, 13, 173, 0.6);
-      text-shadow: 0px 0px 50px rgba(106, 13, 173, 0.8);
+      background-color: rgba(106, 13, 173, 0.7);
+      box-shadow: 0px 0px 50px 25px rgba(106, 13, 173, 0.9);
     }
     #arrow-left { left: 80px; }
     #arrow-right { right: 80px; }
