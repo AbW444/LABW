@@ -182,6 +182,9 @@
     let isIntroActive = true; // Flag pour savoir si on est sur la page d'accueil
     let autoRotationInterval = null; // Intervalle pour la rotation automatique
     let ambientLight = null; // Lumière ambiante dynamique
+    let fillLight1 = null; // Lumières d'appoint pour effet ambilight
+    let fillLight2 = null;
+    let fillLight3 = null;
     let currentAmbientColor = { r: 0.1, g: 0.1, b: 0.15 }; // Couleur ambiante actuelle
     let targetAmbientColor = { r: 0.1, g: 0.1, b: 0.15 }; // Couleur ambiante cible
 
@@ -394,11 +397,21 @@
     scene.add(moonLight);
 
     // Ajouter la lumière ambiante dynamique (effet ambilight)
-    ambientLight = new THREE.AmbientLight(0x1a1a26, 1.5);
+    ambientLight = new THREE.AmbientLight(0x1a1a26, 2.0);
     scene.add(ambientLight);
 
-    // Ajouter un brouillard subtil qui s'adapte aux couleurs (plus éloigné pour ne pas affecter les étoiles)
-    scene.fog = new THREE.Fog(0x0a0a10, 200, 600);
+    // Ajouter des lumières directionnelles colorées pour l'effet ambilight (au lieu du brouillard)
+    fillLight1 = new THREE.DirectionalLight(0x1a1a26, 0.8);
+    fillLight1.position.set(-100, 50, 100);
+    scene.add(fillLight1);
+
+    fillLight2 = new THREE.DirectionalLight(0x1a1a26, 0.8);
+    fillLight2.position.set(100, 50, 100);
+    scene.add(fillLight2);
+
+    fillLight3 = new THREE.DirectionalLight(0x1a1a26, 0.6);
+    fillLight3.position.set(0, -50, -100);
+    scene.add(fillLight3);
 
     // Ajouter la neige à la scène
     const snowGeometry = new THREE.BufferGeometry();
@@ -492,13 +505,15 @@
         ambientLight.color.setRGB(currentAmbientColor.r, currentAmbientColor.g, currentAmbientColor.b);
       }
 
-      // Mettre à jour le brouillard avec la même teinte
-      if (scene.fog) {
-        scene.fog.color.setRGB(
-          currentAmbientColor.r * 0.5,
-          currentAmbientColor.g * 0.5,
-          currentAmbientColor.b * 0.5
-        );
+      // Mettre à jour les lumières directionnelles avec la même teinte pour l'effet ambilight
+      if (fillLight1) {
+        fillLight1.color.setRGB(currentAmbientColor.r * 1.2, currentAmbientColor.g * 1.2, currentAmbientColor.b * 1.2);
+      }
+      if (fillLight2) {
+        fillLight2.color.setRGB(currentAmbientColor.r * 1.2, currentAmbientColor.g * 1.2, currentAmbientColor.b * 1.2);
+      }
+      if (fillLight3) {
+        fillLight3.color.setRGB(currentAmbientColor.r * 0.8, currentAmbientColor.g * 0.8, currentAmbientColor.b * 0.8);
       }
 
       renderer.render(scene, camera);
