@@ -22,8 +22,8 @@
       transition: opacity 1.5s ease-in;
     }
     #ui-overlay button {
-      background-color: #00fcfd;
-      color: #0e0e0e;
+      background-color: transparent;
+      color: #00fcfd;
       border: none;
       outline: none;
       padding: 15px 20px;
@@ -33,10 +33,11 @@
       font-family: "comma-sans", sans-serif;
       font-weight: 700;
       font-style: normal;
-      transition: box-shadow 0.3s, opacity 1s ease-out;
+      transition: background-color 0.3s, box-shadow 0.3s, opacity 1s ease-out;
     }
     #resetCamera:hover, #toggleZoom:hover {
-      box-shadow: 0px 0px 15px rgba(0, 252, 253, 1);
+      background-color: rgba(106, 13, 173, 0.6);
+      box-shadow: 0px 0px 120px 60px rgba(106, 13, 173, 0.8);
     }
     #ui-overlay button:focus {
       outline: none;
