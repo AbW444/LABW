@@ -51,25 +51,23 @@
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      width: 50px;
-      height: 50px;
-      background-color: #00fcfd;
-      color: #000000;
+      background-color: transparent;
+      color: #00fcfd;
       border: none;
       cursor: pointer;
-      font-size: 30px;
+      font-size: 60px;
       font-weight: bold;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 50%;
       z-index: 10;
       opacity: 0;
-      transition: box-shadow 0.3s, opacity 1s ease-out;
+      transition: text-shadow 0.3s, opacity 1s ease-out;
       display: none;
+      padding: 10px;
     }
     .arrow:hover {
-      box-shadow: 0px 0px 10px rgba(0, 252, 253, 0.7);
+      text-shadow: 0px 0px 15px rgba(0, 252, 253, 1);
     }
     #arrow-left { left: 80px; }
     #arrow-right { right: 80px; }
