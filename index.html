@@ -33,7 +33,7 @@
       font-family: "comma-sans", sans-serif;
       font-weight: 700;
       font-style: normal;
-      transition: box-shadow 0.3s;
+      transition: box-shadow 0.3s, opacity 1s ease-out;
     }
     #resetCamera:hover, #toggleZoom:hover {
       box-shadow: 0px 0px 15px rgba(0, 252, 253, 1);
@@ -65,7 +65,7 @@
       border-radius: 50%;
       z-index: 10;
       opacity: 0;
-      transition: box-shadow 0.3s, opacity 1.5s ease-in;
+      transition: box-shadow 0.3s, opacity 1s ease-out;
       display: none;
     }
     .arrow:hover {
@@ -114,10 +114,11 @@
       cursor: pointer;
       font-weight: 900;
       opacity: 0;
-      transition: color 0.3s, background-color 0.3s, opacity 2s ease-out;
+      border-radius: 50%;
+      transition: color 0.3s, box-shadow 0.3s, opacity 3.5s ease-out;
     }
     #startButton:hover {
-      background-color: rgba(106, 13, 173, 0.3); /* Changer la couleur de surbrillance en bleu/violet avec une opacité de 30% */
+      box-shadow: 0px 0px 80px 40px rgba(106, 13, 173, 0.4);
     }
     #page-title {
       position: absolute;
@@ -680,11 +681,55 @@ window.addEventListener('DOMContentLoaded', () => {
     titleContainer.style.opacity = '1';
   }, 1500);
 
-  // Phase 4 (2000ms): bouton >> apparaît
+  // Phase 4 (3000ms): bouton >> apparaît plus lentement
   setTimeout(() => {
     startButton.style.opacity = '1';
-  }, 2000);
+  }, 3000);
 });
+
+// Gestion de l'inactivité pour faire disparaître les boutons
+let inactivityTimer;
+let buttonsVisible = true;
+
+function hideButtons() {
+  const uiButtons = document.querySelectorAll('#ui-overlay button');
+  const arrows = document.querySelectorAll('.arrow');
+
+  uiButtons.forEach(btn => btn.style.opacity = '0.2');
+  arrows.forEach(arrow => arrow.style.opacity = '0.2');
+  buttonsVisible = false;
+}
+
+function showButtons() {
+  const uiButtons = document.querySelectorAll('#ui-overlay button');
+  const arrows = document.querySelectorAll('.arrow');
+
+  uiButtons.forEach(btn => btn.style.opacity = '1');
+  arrows.forEach(arrow => arrow.style.opacity = '1');
+  buttonsVisible = true;
+}
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+
+  if (!buttonsVisible) {
+    showButtons();
+  }
+
+  inactivityTimer = setTimeout(hideButtons, 3500);
+}
+
+// Écouter les événements d'activité
+window.addEventListener('mousemove', resetInactivityTimer);
+window.addEventListener('mousedown', resetInactivityTimer);
+window.addEventListener('keydown', resetInactivityTimer);
+window.addEventListener('touchstart', resetInactivityTimer);
+window.addEventListener('touchmove', resetInactivityTimer);
+
+// Démarrer le timer après le chargement de la page
+setTimeout(() => {
+  resetInactivityTimer();
+}, 1000);
 
   </script>
 </body>
