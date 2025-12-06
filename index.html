@@ -168,7 +168,6 @@
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setClearColor(0x0a0a10); // Couleur de fond initiale pour l'effet ambilight
     document.body.appendChild(renderer.domElement);
 
     let particles;
@@ -182,12 +181,6 @@
     let cancelResetAnimation = false; // Flag pour annuler l'animation
     let isIntroActive = true; // Flag pour savoir si on est sur la page d'accueil
     let autoRotationInterval = null; // Intervalle pour la rotation automatique
-    let ambientLight = null; // Lumière ambiante dynamique
-    let fillLight1 = null; // Lumières d'appoint pour effet ambilight
-    let fillLight2 = null;
-    let fillLight3 = null;
-    let currentAmbientColor = { r: 0.1, g: 0.1, b: 0.15 }; // Couleur ambiante actuelle
-    let targetAmbientColor = { r: 0.1, g: 0.1, b: 0.15 }; // Couleur ambiante cible
 
     const textureLoader = new THREE.TextureLoader();
 
@@ -267,30 +260,6 @@
         particles = new THREE.Points(particleGeometry, particleMaterial);
         particles.rotation.x = Math.PI; // Corriger l'orientation de l'image
         scene.add(particles);
-
-        // Calculer la couleur ambiante dominante pour l'effet ambilight
-        let avgR = 0, avgG = 0, avgB = 0;
-        const colorCount = particleColors.length / 3;
-
-        for (let i = 0; i < particleColors.length; i += 3) {
-          avgR += particleColors[i];
-          avgG += particleColors[i + 1];
-          avgB += particleColors[i + 2];
-        }
-
-        if (colorCount > 0) {
-          avgR /= colorCount;
-          avgG /= colorCount;
-          avgB /= colorCount;
-
-          // Ajuster l'intensité pour un effet visible et agréable
-          const ambientIntensity = 0.65;
-          targetAmbientColor = {
-            r: avgR * ambientIntensity,
-            g: avgG * ambientIntensity,
-            b: avgB * ambientIntensity
-          };
-        }
       }, undefined, function (err) {
         console.error(`Une erreur est survenue lors du chargement de l'image ${imageIndex}:`, err);
       });
@@ -397,22 +366,9 @@
     moonLight.position.set(50, 100, -200);
     scene.add(moonLight);
 
-    // Ajouter la lumière ambiante dynamique (effet ambilight)
-    ambientLight = new THREE.AmbientLight(0x1a1a26, 2.0);
+    // Ajouter une lumière ambiante fixe
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
-
-    // Ajouter des lumières directionnelles colorées pour l'effet ambilight (au lieu du brouillard)
-    fillLight1 = new THREE.DirectionalLight(0x1a1a26, 0.8);
-    fillLight1.position.set(-100, 50, 100);
-    scene.add(fillLight1);
-
-    fillLight2 = new THREE.DirectionalLight(0x1a1a26, 0.8);
-    fillLight2.position.set(100, 50, 100);
-    scene.add(fillLight2);
-
-    fillLight3 = new THREE.DirectionalLight(0x1a1a26, 0.6);
-    fillLight3.position.set(0, -50, -100);
-    scene.add(fillLight3);
 
     // Ajouter la neige à la scène
     const snowGeometry = new THREE.BufferGeometry();
@@ -494,37 +450,6 @@
           shootingStars.splice(i, 1);
         }
       }
-
-      // Transition douce de la couleur ambiante (effet ambilight)
-      const colorTransitionSpeed = 0.02;
-      currentAmbientColor.r += (targetAmbientColor.r - currentAmbientColor.r) * colorTransitionSpeed;
-      currentAmbientColor.g += (targetAmbientColor.g - currentAmbientColor.g) * colorTransitionSpeed;
-      currentAmbientColor.b += (targetAmbientColor.b - currentAmbientColor.b) * colorTransitionSpeed;
-
-      // Mettre à jour la lumière ambiante
-      if (ambientLight) {
-        ambientLight.color.setRGB(currentAmbientColor.r, currentAmbientColor.g, currentAmbientColor.b);
-      }
-
-      // Mettre à jour les lumières directionnelles avec la même teinte pour l'effet ambilight
-      if (fillLight1) {
-        fillLight1.color.setRGB(currentAmbientColor.r * 1.2, currentAmbientColor.g * 1.2, currentAmbientColor.b * 1.2);
-      }
-      if (fillLight2) {
-        fillLight2.color.setRGB(currentAmbientColor.r * 1.2, currentAmbientColor.g * 1.2, currentAmbientColor.b * 1.2);
-      }
-      if (fillLight3) {
-        fillLight3.color.setRGB(currentAmbientColor.r * 0.8, currentAmbientColor.g * 0.8, currentAmbientColor.b * 0.8);
-      }
-
-      // EFFET AMBILIGHT : Changer la couleur de fond de l'espace en fonction de l'image
-      const bgIntensity = 0.15; // Intensité du fond coloré
-      const bgColor = new THREE.Color(
-        currentAmbientColor.r * bgIntensity,
-        currentAmbientColor.g * bgIntensity,
-        currentAmbientColor.b * bgIntensity
-      );
-      renderer.setClearColor(bgColor);
 
       renderer.render(scene, camera);
     }
