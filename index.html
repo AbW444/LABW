@@ -26,19 +26,20 @@
       color: #00fcfd;
       border: none;
       outline: none;
-      padding: 15px 20px;
+      padding: 15px 30px;
       font-size: 20px;
       cursor: pointer;
-      border-radius: 5px;
+      border-radius: 50px;
       font-family: "comma-sans", sans-serif;
       font-weight: 700;
       font-style: normal;
       text-transform: uppercase;
-      transition: background-color 0.3s, box-shadow 0.3s, opacity 1s ease-out;
+      opacity: 1;
+      transition: background-color 0.3s, box-shadow 0.3s;
     }
     #resetCamera:hover, #toggleZoom:hover {
       background-color: rgba(106, 13, 173, 0.6);
-      box-shadow: 0px 0px 20px 10px rgba(106, 13, 173, 0.8);
+      box-shadow: 0px 0px 40px 20px rgba(106, 13, 173, 0.8);
     }
     #ui-overlay button:focus {
       outline: none;
@@ -63,8 +64,8 @@
       align-items: center;
       justify-content: center;
       z-index: 10;
-      opacity: 0;
-      transition: background-color 0.3s, box-shadow 0.3s, opacity 1s ease-out;
+      opacity: 1;
+      transition: background-color 0.3s, box-shadow 0.3s;
       display: none;
       padding: 10px;
       border-radius: 50%;
@@ -645,9 +646,9 @@
         // Déclencher l'animation d'opacité après un court délai
         setTimeout(() => {
           pageTitle.style.opacity = '1';
-          uiOverlay.style.opacity = '0.7';
-          arrowLeft.style.opacity = '0.7';
-          arrowRight.style.opacity = '0.7';
+          uiOverlay.style.opacity = '1';
+          arrowLeft.style.opacity = '1';
+          arrowRight.style.opacity = '1';
         }, 50);
       }, 1000);
 
@@ -772,8 +773,8 @@ function hideButtons() {
   const uiButtons = document.querySelectorAll('#ui-overlay button');
   const arrows = document.querySelectorAll('.arrow');
 
-  uiButtons.forEach(btn => btn.style.opacity = '0.7');
-  arrows.forEach(arrow => arrow.style.opacity = '0.7');
+  uiButtons.forEach(btn => btn.style.opacity = '1');
+  arrows.forEach(arrow => arrow.style.opacity = '1');
   buttonsVisible = false;
 }
 
@@ -781,8 +782,8 @@ function showButtons() {
   const uiButtons = document.querySelectorAll('#ui-overlay button');
   const arrows = document.querySelectorAll('.arrow');
 
-  uiButtons.forEach(btn => btn.style.opacity = '0.7');
-  arrows.forEach(arrow => arrow.style.opacity = '0.7');
+  uiButtons.forEach(btn => btn.style.opacity = '1');
+  arrows.forEach(arrow => arrow.style.opacity = '1');
   buttonsVisible = true;
 }
 
