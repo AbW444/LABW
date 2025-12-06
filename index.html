@@ -180,6 +180,9 @@
     let cancelResetAnimation = false; // Flag pour annuler l'animation
     let isIntroActive = true; // Flag pour savoir si on est sur la page d'accueil
     let autoRotationInterval = null; // Intervalle pour la rotation automatique
+    let ambientLight = null; // Lumière ambiante dynamique
+    let currentAmbientColor = { r: 0.1, g: 0.1, b: 0.15 }; // Couleur ambiante actuelle
+    let targetAmbientColor = { r: 0.1, g: 0.1, b: 0.15 }; // Couleur ambiante cible
 
     const textureLoader = new THREE.TextureLoader();
 
@@ -259,6 +262,30 @@
         particles = new THREE.Points(particleGeometry, particleMaterial);
         particles.rotation.x = Math.PI; // Corriger l'orientation de l'image
         scene.add(particles);
+
+        // Calculer la couleur ambiante dominante pour l'effet ambilight
+        let avgR = 0, avgG = 0, avgB = 0;
+        const colorCount = particleColors.length / 3;
+
+        for (let i = 0; i < particleColors.length; i += 3) {
+          avgR += particleColors[i];
+          avgG += particleColors[i + 1];
+          avgB += particleColors[i + 2];
+        }
+
+        if (colorCount > 0) {
+          avgR /= colorCount;
+          avgG /= colorCount;
+          avgB /= colorCount;
+
+          // Ajuster l'intensité pour un effet subtil et agréable
+          const ambientIntensity = 0.35;
+          targetAmbientColor = {
+            r: avgR * ambientIntensity,
+            g: avgG * ambientIntensity,
+            b: avgB * ambientIntensity
+          };
+        }
       }, undefined, function (err) {
         console.error(`Une erreur est survenue lors du chargement de l'image ${imageIndex}:`, err);
       });
@@ -365,6 +392,13 @@
     moonLight.position.set(50, 100, -200);
     scene.add(moonLight);
 
+    // Ajouter la lumière ambiante dynamique (effet ambilight)
+    ambientLight = new THREE.AmbientLight(0x1a1a26, 0.8);
+    scene.add(ambientLight);
+
+    // Ajouter un brouillard subtil qui s'adapte aux couleurs
+    scene.fog = new THREE.Fog(0x0a0a10, 50, 500);
+
     // Ajouter la neige à la scène
     const snowGeometry = new THREE.BufferGeometry();
     const snowMaterial = new THREE.PointsMaterial({
@@ -444,6 +478,26 @@
           scene.remove(star);
           shootingStars.splice(i, 1);
         }
+      }
+
+      // Transition douce de la couleur ambiante (effet ambilight)
+      const colorTransitionSpeed = 0.02;
+      currentAmbientColor.r += (targetAmbientColor.r - currentAmbientColor.r) * colorTransitionSpeed;
+      currentAmbientColor.g += (targetAmbientColor.g - currentAmbientColor.g) * colorTransitionSpeed;
+      currentAmbientColor.b += (targetAmbientColor.b - currentAmbientColor.b) * colorTransitionSpeed;
+
+      // Mettre à jour la lumière ambiante
+      if (ambientLight) {
+        ambientLight.color.setRGB(currentAmbientColor.r, currentAmbientColor.g, currentAmbientColor.b);
+      }
+
+      // Mettre à jour le brouillard avec la même teinte
+      if (scene.fog) {
+        scene.fog.color.setRGB(
+          currentAmbientColor.r * 0.3,
+          currentAmbientColor.g * 0.3,
+          currentAmbientColor.b * 0.3
+        );
       }
 
       renderer.render(scene, camera);
