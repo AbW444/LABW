@@ -597,9 +597,13 @@
         setTimeout(() => {
           pageTitle.style.opacity = '1';
           uiOverlay.style.opacity = '1';
+        }, 50);
+
+        // Faire apparaître les flèches après le titre
+        setTimeout(() => {
           arrowLeft.style.opacity = '1';
           arrowRight.style.opacity = '1';
-        }, 50);
+        }, 800);
       }, 1000);
 
       // Déclencher le zoom arrière de la caméra
