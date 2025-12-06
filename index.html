@@ -244,7 +244,7 @@
 
               const posX = (x - imgWidth / 2) / scaleFactor;
               const posY = (y - imgHeight / 2) / scaleFactor;
-              const posZ = (Math.random() - 0.5) * 5;
+              const posZ = (Math.random() - 0.5) * 20; // État dispersé dès le départ
               particleVertices.push(posX, posY, posZ);
               particleColors.push(r, g, b);
             }
@@ -556,12 +556,12 @@
       }
     });
 
-    // Apparition et disparition aléatoires des particules
+    // Mouvement subtil des particules (réduit pour garder l'état dispersé)
     setInterval(() => {
       if (particles) {
         const positions = particles.geometry.attributes.position.array;
         for (let i = 0; i < positions.length; i += 3) {
-          positions[i + 2] += (Math.random() - 0.5) * 0.1;
+          positions[i + 2] += (Math.random() - 0.5) * 0.02; // Mouvement très subtil
         }
         particles.geometry.attributes.position.needsUpdate = true;
       }
