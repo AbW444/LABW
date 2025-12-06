@@ -71,8 +71,8 @@
       border-radius: 50%;
     }
     .arrow:hover {
-      background-color: rgba(106, 13, 173, 0.3);
-      box-shadow: 0px 0px 40px 10px rgba(106, 13, 173, 0.4);
+      background-color: rgba(106, 13, 173, 0.5);
+      box-shadow: 0px 0px 120px 120px rgba(106, 13, 173, 0.5);
     }
     #arrow-left { left: 80px; }
     #arrow-right { right: 80px; }
@@ -168,6 +168,7 @@
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x0a0a10); // Couleur de fond initiale pour l'effet ambilight
     document.body.appendChild(renderer.domElement);
 
     let particles;
@@ -515,6 +516,15 @@
       if (fillLight3) {
         fillLight3.color.setRGB(currentAmbientColor.r * 0.8, currentAmbientColor.g * 0.8, currentAmbientColor.b * 0.8);
       }
+
+      // EFFET AMBILIGHT : Changer la couleur de fond de l'espace en fonction de l'image
+      const bgIntensity = 0.15; // Intensité du fond coloré
+      const bgColor = new THREE.Color(
+        currentAmbientColor.r * bgIntensity,
+        currentAmbientColor.g * bgIntensity,
+        currentAmbientColor.b * bgIntensity
+      );
+      renderer.setClearColor(bgColor);
 
       renderer.render(scene, camera);
     }
