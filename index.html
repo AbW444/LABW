@@ -37,7 +37,7 @@
     }
     #resetCamera:hover, #toggleZoom:hover {
       background-color: rgba(106, 13, 173, 0.6);
-      box-shadow: 0px 0px 120px 60px rgba(106, 13, 173, 0.8);
+      box-shadow: 0px 0px 40px 20px rgba(106, 13, 173, 0.8);
     }
     #ui-overlay button:focus {
       outline: none;
@@ -63,12 +63,14 @@
       justify-content: center;
       z-index: 10;
       opacity: 0;
-      transition: text-shadow 0.3s, opacity 1s ease-out;
+      transition: text-shadow 0.3s, background-color 0.3s, opacity 1s ease-out;
       display: none;
       padding: 10px;
+      border-radius: 50%;
     }
     .arrow:hover {
-      text-shadow: 0px 0px 15px rgba(0, 252, 253, 1);
+      background-color: rgba(106, 13, 173, 0.6);
+      text-shadow: 0px 0px 50px rgba(106, 13, 173, 0.8);
     }
     #arrow-left { left: 80px; }
     #arrow-right { right: 80px; }
@@ -175,6 +177,8 @@
     let referenceHeight = null; // Hauteur de référence basée sur l'image 4
     let isResetAnimating = false; // Flag pour l'animation de replacement
     let cancelResetAnimation = false; // Flag pour annuler l'animation
+    let isIntroActive = true; // Flag pour savoir si on est sur la page d'accueil
+    let autoRotationInterval = null; // Intervalle pour la rotation automatique
 
     const textureLoader = new THREE.TextureLoader();
 
@@ -516,6 +520,8 @@
 
     // Déplacement de la caméra avec un clic maintenu
     window.addEventListener('mousedown', (event) => {
+      if (isIntroActive) return; // Bloquer le mouvement sur la page d'accueil
+
       isDragging = true;
       previousMousePosition = { x: event.clientX, y: event.clientY };
 
@@ -557,6 +563,13 @@
     // Masquer l'interface d'accueil lorsque l'utilisateur commence
     document.getElementById('startButton').addEventListener('click', () => {
       const overlay = document.getElementById('intro-overlay');
+
+      // Désactiver la page d'accueil et arrêter la rotation automatique
+      isIntroActive = false;
+      if (autoRotationInterval) {
+        clearInterval(autoRotationInterval);
+        autoRotationInterval = null;
+      }
 
       // Faire disparaître progressivement le fond noir
       overlay.style.opacity = '0';
@@ -626,6 +639,8 @@ let isTouchDragging = false;
 let touchStartPosition = { x: 0, y: 0 };
 
 window.addEventListener('touchstart', (event) => {
+  if (isIntroActive) return; // Bloquer le mouvement sur la page d'accueil
+
   if (event.touches.length === 1) { // S'assurer qu'il s'agit d'un seul doigt
     isTouchDragging = true;
     touchStartPosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
@@ -664,27 +679,34 @@ window.addEventListener('DOMContentLoaded', () => {
   const titleContainer = document.getElementById('title-container');
   const startButton = document.getElementById('startButton');
 
-  // Séquence d'animation fluide
-  // Phase 1 (0-250ms): titre commence à disparaître
+  // Séquence d'animation fluide (accélérée)
+  // Phase 1 (0-200ms): titre commence à disparaître
   setTimeout(() => {
     titleContainer.style.opacity = '0';
-  }, 250);
+  }, 200);
 
-  // Phase 2 (500ms): titre commence à réapparaître
+  // Phase 2 (400ms): titre commence à réapparaître
   setTimeout(() => {
     titleContainer.style.opacity = '0.5';
-  }, 500);
+  }, 400);
 
-  // Phase 3 (1500ms): tout devient visible progressivement
+  // Phase 3 (1200ms): tout devient visible progressivement
   setTimeout(() => {
     introOverlay.style.background = 'rgba(0, 0, 0, 0.4)';
     titleContainer.style.opacity = '1';
-  }, 1500);
+  }, 1200);
 
-  // Phase 4 (3000ms): bouton >> apparaît plus lentement
+  // Phase 4 (2400ms): bouton >> apparaît
   setTimeout(() => {
     startButton.style.opacity = '1';
-  }, 3000);
+  }, 2400);
+
+  // Rotation automatique de la caméra sur la page d'accueil
+  autoRotationInterval = setInterval(() => {
+    if (isIntroActive) {
+      camera.rotation.y += 0.001;
+    }
+  }, 16); // ~60fps
 });
 
 // Gestion de l'inactivité pour faire disparaître les boutons
