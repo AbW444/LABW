@@ -130,7 +130,7 @@
       left: 50%;
       transform: translateX(-50%);
       color: #00fcfd;
-      font-size: clamp(28px, 5vw, 48px);
+      font-size: clamp(22px, 4vw, 38px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
       font-style: normal;
@@ -279,8 +279,8 @@
           avgG /= colorCount;
           avgB /= colorCount;
 
-          // Ajuster l'intensité pour un effet subtil et agréable
-          const ambientIntensity = 0.35;
+          // Ajuster l'intensité pour un effet visible et agréable
+          const ambientIntensity = 0.65;
           targetAmbientColor = {
             r: avgR * ambientIntensity,
             g: avgG * ambientIntensity,
@@ -394,11 +394,11 @@
     scene.add(moonLight);
 
     // Ajouter la lumière ambiante dynamique (effet ambilight)
-    ambientLight = new THREE.AmbientLight(0x1a1a26, 0.8);
+    ambientLight = new THREE.AmbientLight(0x1a1a26, 1.5);
     scene.add(ambientLight);
 
-    // Ajouter un brouillard subtil qui s'adapte aux couleurs
-    scene.fog = new THREE.Fog(0x0a0a10, 50, 500);
+    // Ajouter un brouillard subtil qui s'adapte aux couleurs (plus éloigné pour ne pas affecter les étoiles)
+    scene.fog = new THREE.Fog(0x0a0a10, 200, 600);
 
     // Ajouter la neige à la scène
     const snowGeometry = new THREE.BufferGeometry();
@@ -495,9 +495,9 @@
       // Mettre à jour le brouillard avec la même teinte
       if (scene.fog) {
         scene.fog.color.setRGB(
-          currentAmbientColor.r * 0.3,
-          currentAmbientColor.g * 0.3,
-          currentAmbientColor.b * 0.3
+          currentAmbientColor.r * 0.5,
+          currentAmbientColor.g * 0.5,
+          currentAmbientColor.b * 0.5
         );
       }
 
