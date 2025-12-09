@@ -56,15 +56,18 @@
       font-style: normal;
       text-transform: uppercase;
       opacity: 1;
-      transition: background-color 0.3s, box-shadow 0.3s, text-shadow 0.3s;
+      transition: text-shadow 0.3s, transform 0.3s;
       text-shadow:
-        0 0 4px rgba(85, 255, 255, 0.5),
-        0 0 8px rgba(85, 255, 255, 0.3),
-        0 0 12px rgba(106, 13, 173, 0.15);
+        0 0 8px rgba(85, 255, 255, 0.9),
+        0 0 16px rgba(85, 255, 255, 0.6),
+        0 0 24px rgba(106, 13, 173, 0.4);
     }
     #resetCamera:hover, #toggleZoom:hover {
-      background-color: rgba(106, 13, 173, 0.3);
-      box-shadow: 0px 0px 25px 5px rgba(106, 13, 173, 0.4);
+      transform: scale(1.15);
+      text-shadow:
+        0 0 20px rgba(106, 13, 173, 0.8),
+        0 0 40px rgba(106, 13, 173, 0.6),
+        0 0 60px rgba(106, 13, 173, 0.4);
     }
     #ui-overlay button:focus {
       outline: none;
@@ -90,16 +93,17 @@
       justify-content: center;
       z-index: 10;
       opacity: 1;
-      transition: background-color 0.3s, box-shadow 0.3s, text-shadow 0.3s, opacity 0.5s ease-in-out;
+      transition: text-shadow 0.3s, transform 0.3s, opacity 0.5s ease-in-out;
       display: none;
       padding: 10px;
       border-radius: 50%;
       text-shadow:
-        0 0 4px rgba(85, 255, 255, 0.5),
-        0 0 8px rgba(85, 255, 255, 0.3),
-        0 0 12px rgba(106, 13, 173, 0.15);
+        0 0 8px rgba(85, 255, 255, 0.9),
+        0 0 16px rgba(85, 255, 255, 0.6),
+        0 0 24px rgba(106, 13, 173, 0.4);
     }
     .arrow:hover {
+      transform: translateY(-50%) scale(1.15);
       text-shadow:
         0 0 20px rgba(106, 13, 173, 0.8),
         0 0 40px rgba(106, 13, 173, 0.6),
@@ -114,7 +118,7 @@
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(15px);
+      backdrop-filter: blur(3px);
       display: flex;
       align-items: flex-start;
       justify-content: center;
@@ -145,16 +149,23 @@
       color: #55ffff;
       border: none;
       padding: 0;
-      font-size: 216px;
+      font-size: 280px;
       cursor: pointer;
       font-weight: 900;
       opacity: 0;
       border-radius: 50%;
-      transition: color 0.3s, background-color 0.3s, box-shadow 0.3s, opacity 3.5s ease-out;
+      transition: text-shadow 0.3s, transform 0.3s, opacity 3.5s ease-out;
+      text-shadow:
+        0 0 8px rgba(85, 255, 255, 0.9),
+        0 0 16px rgba(85, 255, 255, 0.6),
+        0 0 24px rgba(106, 13, 173, 0.4);
     }
     #startButton:hover {
-      background-color: rgba(106, 13, 173, 0.5);
-      box-shadow: 0px 0px 80px 80px rgba(106, 13, 173, 0.5);
+      transform: translate(-50%, -50%) scale(1.15);
+      text-shadow:
+        0 0 20px rgba(106, 13, 173, 0.8),
+        0 0 40px rgba(106, 13, 173, 0.6),
+        0 0 60px rgba(106, 13, 173, 0.4);
     }
     #page-title {
       position: absolute;
@@ -215,16 +226,16 @@
     function fadeUIIn() {
       customCursor.style.opacity = '1';
       // Ne faire apparaître les boutons que s'ils sont déjà affichés (pas sur page d'accueil)
-      if (uiOverlay.style.display === 'flex') {
+      if (window.getComputedStyle(uiOverlay).display === 'flex') {
         uiOverlay.style.opacity = '1';
       }
-      if (pageTitle.style.display === 'block') {
+      if (window.getComputedStyle(pageTitle).display === 'block') {
         pageTitle.style.opacity = '1';
       }
-      if (arrowLeft.style.display === 'flex') {
+      if (window.getComputedStyle(arrowLeft).display === 'flex') {
         arrowLeft.style.opacity = '1';
       }
-      if (arrowRight.style.display === 'flex') {
+      if (window.getComputedStyle(arrowRight).display === 'flex') {
         arrowRight.style.opacity = '1';
       }
       clearTimeout(fadeTimer);
