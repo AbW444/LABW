@@ -271,6 +271,12 @@
     let isIntroActive = true; // Flag pour savoir si on est sur la page d'accueil
     let autoRotationInterval = null; // Intervalle pour la rotation automatique
 
+    // Variables pour le zoom progressif (DOIVENT être déclarées avant animate())
+    let zoomLevel = 0;
+    let targetZoomLevel = 0;
+    const minZoom = 25; // Position loin
+    const maxZoom = 2;  // Position proche
+
     const textureLoader = new THREE.TextureLoader();
 
     // Saturation des couleurs
@@ -677,12 +683,6 @@
       }
       requestAnimationFrame(animateReset);
     });
-
-    // Variable pour le niveau de zoom (0 = loin, 1 = proche)
-    let zoomLevel = 0;
-    let targetZoomLevel = 0; // Position cible pour le scroll
-    const minZoom = 25; // Position loin
-    const maxZoom = 2;  // Position proche
 
     document.getElementById('toggleZoom').addEventListener('click', () => {
       const zoomDuration = 1500;
