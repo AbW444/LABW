@@ -307,7 +307,7 @@
     bigStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bigStarsVertices, 3));
     bigStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(bigStarsColors, 3));
     const bigStarsMaterial = new THREE.PointsMaterial({
-      size: 0.045, // BEAUCOUP PLUS GROSSES
+      size: 0.07, // ENCORE PLUS GROSSES - très brillantes
       vertexColors: true,
       transparent: true,
       opacity: 1.0, // PLEINE LUMINOSITÉ
@@ -359,10 +359,10 @@
     smallStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(smallStarsVertices, 3));
     smallStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(smallStarsColors, 3));
     const smallStarsMaterial = new THREE.PointsMaterial({
-      size: 0.010, // Petites mais visibles
+      size: 0.008, // Plus petites
       vertexColors: true,
       transparent: true,
-      opacity: 0.4, // Très discrètes pour la profondeur
+      opacity: 0.25, // BEAUCOUP plus discrètes - contraste fort
     });
     const smallStars = new THREE.Points(smallStarsGeometry, smallStarsMaterial);
     scene.add(smallStars);
