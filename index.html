@@ -5,21 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AURORA UNREALIS</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' fill='%2300fcfd' rx='5'/></svg>">
+
+  <!-- Filtre SVG pour effet de bruit -->
+  <svg style="position: absolute; width: 0; height: 0;">
+    <defs>
+      <filter id="noise">
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" />
+        <feColorMatrix type="saturate" values="0" />
+        <feBlend mode="multiply" />
+      </filter>
+    </defs>
+  </svg>
+
   <style>
     * { cursor: none !important; }
     body { margin: 0; overflow: hidden; font-family: 'Roboto', Arial, sans-serif; background-color: #0e0e0e; }
     canvas { display: block; }
 
-    /* Curseur personnalisé carré blanc avec effet miroir subtil */
+    /* Curseur personnalisé - blanc solide avec reflet subtil */
     #custom-cursor {
       position: fixed;
       width: 16px;
       height: 16px;
-      background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0.9) 100%);
+      background-color: white;
       pointer-events: none;
       z-index: 99999;
-      mix-blend-mode: soft-light;
-      border: 1px solid rgba(255, 255, 255, 0.6);
+      box-shadow: 0 0 4px 1px rgba(0, 252, 253, 0.3);
       left: 0;
       top: 0;
       transform: translate(-50%, -50%);
@@ -56,13 +67,8 @@
     }
     #resetCamera:hover, #toggleZoom:hover {
       background-color: rgba(106, 13, 173, 0.3);
-      box-shadow:
-        0px 0px 25px 5px rgba(106, 13, 173, 0.4),
-        2px 1px 3px 0px rgba(106, 13, 173, 0.3),
-        -1px -2px 4px 0px rgba(106, 13, 173, 0.25),
-        3px -1px 2px 0px rgba(106, 13, 173, 0.2),
-        -2px 3px 5px 0px rgba(106, 13, 173, 0.35);
-      filter: contrast(1.1);
+      box-shadow: 0px 0px 25px 5px rgba(106, 13, 173, 0.4);
+      filter: url(#noise) contrast(1.1);
     }
     #ui-overlay button:focus {
       outline: none;
@@ -95,13 +101,8 @@
     }
     .arrow:hover {
       background-color: rgba(106, 13, 173, 0.5);
-      box-shadow:
-        0px 0px 40px 40px rgba(106, 13, 173, 0.5),
-        3px 2px 5px 2px rgba(106, 13, 173, 0.4),
-        -2px -3px 6px 3px rgba(106, 13, 173, 0.35),
-        4px -2px 4px 1px rgba(106, 13, 173, 0.3),
-        -3px 4px 7px 2px rgba(106, 13, 173, 0.45);
-      filter: contrast(1.1);
+      box-shadow: 0px 0px 40px 40px rgba(106, 13, 173, 0.5);
+      filter: url(#noise) contrast(1.1);
     }
     #arrow-left { left: 80px; }
     #arrow-right { right: 80px; }
@@ -151,13 +152,8 @@
     }
     #startButton:hover {
       background-color: rgba(106, 13, 173, 0.5);
-      box-shadow:
-        0px 0px 60px 60px rgba(106, 13, 173, 0.5),
-        4px 3px 8px 4px rgba(106, 13, 173, 0.4),
-        -3px -4px 9px 5px rgba(106, 13, 173, 0.35),
-        5px -3px 6px 2px rgba(106, 13, 173, 0.3),
-        -4px 5px 10px 4px rgba(106, 13, 173, 0.45);
-      filter: contrast(1.1);
+      box-shadow: 0px 0px 60px 60px rgba(106, 13, 173, 0.5);
+      filter: url(#noise) contrast(1.1);
     }
     #page-title {
       position: absolute;
