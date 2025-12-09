@@ -10,7 +10,7 @@
     body { margin: 0; overflow: hidden; font-family: 'Roboto', Arial, sans-serif; background-color: #0e0e0e; }
     canvas { display: block; }
 
-    /* Curseur personnalisé - blanc solide avec reflet subtil */
+    /* Curseur personnalisé - blanc solide avec effet chromatique fort */
     #custom-cursor {
       position: fixed;
       width: 16px;
@@ -18,10 +18,14 @@
       background-color: white;
       pointer-events: none;
       z-index: 99999;
-      box-shadow: 0 0 4px 1px rgba(0, 252, 253, 0.3);
+      box-shadow:
+        0 0 8px 2px rgba(0, 252, 253, 0.8),
+        0 0 16px 4px rgba(0, 252, 253, 0.5),
+        0 0 24px 6px rgba(106, 13, 173, 0.3);
       left: 0;
       top: 0;
       transform: translate(-50%, -50%);
+      transition: opacity 0.5s ease-in-out;
     }
     #ui-overlay {
       position: absolute;
@@ -179,12 +183,32 @@
   <button id="arrow-right" class="arrow">&gt;</button>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    // Curseur personnalisé
+    // Curseur personnalisé avec disparition après inactivité
     const customCursor = document.getElementById('custom-cursor');
+    let cursorFadeTimer;
+
+    function fadeCursorOut() {
+      customCursor.style.opacity = '0';
+    }
+
+    function fadeCursorIn() {
+      customCursor.style.opacity = '1';
+      clearTimeout(cursorFadeTimer);
+      cursorFadeTimer = setTimeout(fadeCursorOut, 3000); // Disparaît après 3 secondes
+    }
+
     document.addEventListener('mousemove', (e) => {
       customCursor.style.left = e.clientX + 'px';
       customCursor.style.top = e.clientY + 'px';
+      fadeCursorIn(); // Réapparaît au mouvement
     });
+
+    document.addEventListener('mousedown', fadeCursorIn);
+    document.addEventListener('mouseup', fadeCursorIn);
+    document.addEventListener('click', fadeCursorIn);
+
+    // Démarrer le timer initial
+    fadeCursorIn();
 
     // Initialisation de la scène, caméra et rendu
     const scene = new THREE.Scene();
