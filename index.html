@@ -266,31 +266,110 @@
       });
     }
 
-    // Ajouter des étoiles autour de la caméra
-    const starGeometry = new THREE.BufferGeometry();
-    const starMaterial = new THREE.PointsMaterial({
-      color: 0xffffff,
-      size: 0.01,
-      transparent: true,
-      opacity: 0.8,
-    });
+    // Ajouter des étoiles réalistes avec variations de couleur, taille et luminosité
+    const sphereRadius = 400;
 
-    const starVertices = [];
-    const sphereRadius = 400; // Rayon de la sphère d'étoiles
-    for (let i = 0; i < 3000; i++) {
-      // Placement sur une sphère
+    // Fonction pour générer une couleur d'étoile réaliste
+    function getRealisticStarColor() {
+      const rand = Math.random();
+      if (rand < 0.6) {
+        // 60% - Étoiles blanches/blanc-bleuté (comme notre soleil et plus chaudes)
+        return new THREE.Color(1, 1, 1);
+      } else if (rand < 0.8) {
+        // 20% - Étoiles jaune-blanc
+        return new THREE.Color(1, 0.98, 0.9);
+      } else if (rand < 0.92) {
+        // 12% - Étoiles bleu-blanc (très chaudes)
+        return new THREE.Color(0.9, 0.95, 1);
+      } else {
+        // 8% - Étoiles orangées/rougeâtres (plus froides)
+        return new THREE.Color(1, 0.85, 0.7);
+      }
+    }
+
+    // Créer 3 couches d'étoiles avec différentes tailles pour le réalisme
+
+    // Couche 1 : Grandes étoiles brillantes (rares)
+    const bigStarsGeometry = new THREE.BufferGeometry();
+    const bigStarsVertices = [];
+    const bigStarsColors = [];
+    for (let i = 0; i < 150; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos((Math.random() * 2) - 1);
-
       const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
       const y = sphereRadius * Math.sin(phi) * Math.sin(theta);
       const z = sphereRadius * Math.cos(phi);
-      starVertices.push(x, y, z);
-    }
+      bigStarsVertices.push(x, y, z);
 
-    starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
-    const stars = new THREE.Points(starGeometry, starMaterial);
-    scene.add(stars);
+      const color = getRealisticStarColor();
+      bigStarsColors.push(color.r, color.g, color.b);
+    }
+    bigStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bigStarsVertices, 3));
+    bigStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(bigStarsColors, 3));
+    const bigStarsMaterial = new THREE.PointsMaterial({
+      size: 0.025,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9,
+    });
+    const bigStars = new THREE.Points(bigStarsGeometry, bigStarsMaterial);
+    scene.add(bigStars);
+
+    // Couche 2 : Étoiles moyennes (plus nombreuses)
+    const mediumStarsGeometry = new THREE.BufferGeometry();
+    const mediumStarsVertices = [];
+    const mediumStarsColors = [];
+    for (let i = 0; i < 800; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
+      const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
+      const y = sphereRadius * Math.sin(phi) * Math.sin(theta);
+      const z = sphereRadius * Math.cos(phi);
+      mediumStarsVertices.push(x, y, z);
+
+      const color = getRealisticStarColor();
+      mediumStarsColors.push(color.r, color.g, color.b);
+    }
+    mediumStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(mediumStarsVertices, 3));
+    mediumStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(mediumStarsColors, 3));
+    const mediumStarsMaterial = new THREE.PointsMaterial({
+      size: 0.015,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.75,
+    });
+    const mediumStars = new THREE.Points(mediumStarsGeometry, mediumStarsMaterial);
+    scene.add(mediumStars);
+
+    // Couche 3 : Petites étoiles lointaines (très nombreuses, discrètes)
+    const smallStarsGeometry = new THREE.BufferGeometry();
+    const smallStarsVertices = [];
+    const smallStarsColors = [];
+    for (let i = 0; i < 2000; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
+      const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
+      const y = sphereRadius * Math.sin(phi) * Math.sin(theta);
+      const z = sphereRadius * Math.cos(phi);
+      smallStarsVertices.push(x, y, z);
+
+      const color = getRealisticStarColor();
+      smallStarsColors.push(color.r, color.g, color.b);
+    }
+    smallStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(smallStarsVertices, 3));
+    smallStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(smallStarsColors, 3));
+    const smallStarsMaterial = new THREE.PointsMaterial({
+      size: 0.008,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.6,
+    });
+    const smallStars = new THREE.Points(smallStarsGeometry, smallStarsMaterial);
+    scene.add(smallStars);
+
+    // Référence pour l'animation (on garde la référence de la couche moyenne pour la rotation)
+    const stars = mediumStars;
+
 
     // Ajouter des étoiles filantes
     const shootingStars = [];
