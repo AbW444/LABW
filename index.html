@@ -129,16 +129,40 @@
       font-weight: 700;
       font-style: normal;
       z-index: 20;
-      padding-left: 40px;
+      padding-left: clamp(20px, 5vw, 40px);
       box-sizing: border-box;
       overflow: hidden;
       transition: background 2s ease-out, opacity 1.0s ease-out;
+    }
+    @media (max-width: 768px) {
+      #intro-overlay {
+        align-items: center;
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    }
+    @media (max-aspect-ratio: 1/1) {
+      #intro-overlay {
+        align-items: center;
+        justify-content: center;
+      }
     }
     #title-container {
       text-align: left;
       line-height: 0.9;
       opacity: 0;
       transition: opacity 2s ease-out;
+      max-width: 90%;
+    }
+    @media (max-width: 768px) {
+      #title-container {
+        text-align: center;
+      }
+    }
+    @media (max-aspect-ratio: 1/1) {
+      #title-container {
+        text-align: center;
+      }
     }
     #startButton {
       position: absolute;
@@ -149,7 +173,7 @@
       color: #55ffff;
       border: none;
       padding: 0;
-      font-size: 280px;
+      font-size: clamp(150px, 25vw, 280px);
       cursor: pointer;
       font-weight: 900;
       opacity: 0;
@@ -159,6 +183,18 @@
         0 0 8px rgba(85, 255, 255, 0.9),
         0 0 16px rgba(85, 255, 255, 0.6),
         0 0 24px rgba(106, 13, 173, 0.4);
+    }
+    @media (max-width: 768px) {
+      #startButton {
+        left: 50%;
+        top: 70%;
+      }
+    }
+    @media (max-aspect-ratio: 1/1) {
+      #startButton {
+        left: 50%;
+        top: 65%;
+      }
     }
     #startButton:hover {
       transform: translate(-50%, -50%) scale(1.15);
@@ -214,25 +250,24 @@
     const arrowLeft = document.getElementById('arrow-left');
     const arrowRight = document.getElementById('arrow-right');
     let fadeTimer;
+    let buttonsAreVisible = false; // Flag pour savoir si les boutons sont affichés
 
     function fadeUIOut() {
       customCursor.style.opacity = '0';
-      uiOverlay.style.opacity = '0';
-      arrowLeft.style.opacity = '0';
-      arrowRight.style.opacity = '0';
+      if (buttonsAreVisible) {
+        uiOverlay.style.opacity = '0';
+        arrowLeft.style.opacity = '0';
+        arrowRight.style.opacity = '0';
+      }
       // pageTitle ne disparaît jamais
     }
 
     function fadeUIIn() {
       customCursor.style.opacity = '1';
-      // Ne faire apparaître les boutons que s'ils sont déjà affichés (pas sur page d'accueil)
-      if (window.getComputedStyle(uiOverlay).display === 'flex') {
+      // Ne faire apparaître les boutons que s'ils sont affichés ET le flag est activé
+      if (buttonsAreVisible) {
         uiOverlay.style.opacity = '1';
-      }
-      if (window.getComputedStyle(arrowLeft).display === 'flex') {
         arrowLeft.style.opacity = '1';
-      }
-      if (window.getComputedStyle(arrowRight).display === 'flex') {
         arrowRight.style.opacity = '1';
       }
       clearTimeout(fadeTimer);
@@ -806,6 +841,8 @@
         setTimeout(() => {
           arrowLeft.style.opacity = '1';
           arrowRight.style.opacity = '1';
+          // Activer le flag pour permettre le fade in/out des boutons
+          buttonsAreVisible = true;
         }, 800);
       }, 1000);
 
