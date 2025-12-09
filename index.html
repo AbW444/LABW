@@ -52,26 +52,10 @@
       text-transform: uppercase;
       opacity: 1;
       transition: background-color 0.3s, box-shadow 0.3s;
-      position: relative;
-      overflow: hidden;
     }
     #resetCamera:hover, #toggleZoom:hover {
       background-color: rgba(106, 13, 173, 0.3);
       box-shadow: 0px 0px 25px 5px rgba(106, 13, 173, 0.4);
-    }
-    #resetCamera:hover::after, #toggleZoom:hover::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4"/></filter><rect width="200" height="200" filter="url(%23n)"/></svg>');
-      background-size: 200px 200px;
-      opacity: 0.25;
-      mix-blend-mode: overlay;
-      pointer-events: none;
-      border-radius: 50px;
     }
     #ui-overlay button:focus {
       outline: none;
@@ -101,24 +85,9 @@
       display: none;
       padding: 10px;
       border-radius: 50%;
-      overflow: hidden;
     }
     .arrow:hover {
       box-shadow: 0px 0px 40px 40px rgba(106, 13, 173, 0.5);
-    }
-    .arrow:hover::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="n2"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4"/></filter><rect width="200" height="200" filter="url(%23n2)"/></svg>');
-      background-size: 200px 200px;
-      opacity: 0.25;
-      mix-blend-mode: overlay;
-      pointer-events: none;
-      border-radius: 50%;
     }
     #arrow-left { left: 80px; }
     #arrow-right { right: 80px; }
@@ -165,25 +134,10 @@
       opacity: 0;
       border-radius: 50%;
       transition: color 0.3s, background-color 0.3s, box-shadow 0.3s, opacity 3.5s ease-out;
-      overflow: hidden;
     }
     #startButton:hover {
       background-color: rgba(106, 13, 173, 0.5);
       box-shadow: 0px 0px 60px 60px rgba(106, 13, 173, 0.5);
-    }
-    #startButton:hover::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="n3"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4"/></filter><rect width="200" height="200" filter="url(%23n3)"/></svg>');
-      background-size: 200px 200px;
-      opacity: 0.25;
-      mix-blend-mode: overlay;
-      pointer-events: none;
-      border-radius: 50%;
     }
     #page-title {
       position: absolute;
