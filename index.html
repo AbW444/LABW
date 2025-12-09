@@ -672,12 +672,17 @@
       requestAnimationFrame(animateReset);
     });
 
+    // Variable pour le niveau de zoom (0 = loin, 1 = proche)
+    let zoomLevel = 0;
+    const minZoom = 25; // Position loin
+    const maxZoom = 2;  // Position proche
+
     document.getElementById('toggleZoom').addEventListener('click', () => {
       const zoomDuration = 1500;
       const startPosition = camera.position.clone();
       const targetPosition = isZoomedIn
-        ? new THREE.Vector3(0, 0, 25)
-        : new THREE.Vector3(0, 0, 2);
+        ? new THREE.Vector3(0, 0, minZoom)
+        : new THREE.Vector3(0, 0, maxZoom);
 
       const startTime = performance.now();
       function animateZoom(currentTime) {
@@ -690,10 +695,34 @@
           requestAnimationFrame(animateZoom);
         } else {
           isZoomedIn = !isZoomedIn;
+          // Mettre à jour le zoomLevel en fonction du nouvel état
+          zoomLevel = isZoomedIn ? 1 : 0;
         }
       }
       requestAnimationFrame(animateZoom);
     });
+
+    // Zoom progressif avec la molette de la souris
+    window.addEventListener('wheel', (event) => {
+      if (isIntroActive) return; // Pas de zoom sur la page d'accueil
+
+      event.preventDefault();
+
+      // Ajuster le niveau de zoom basé sur la direction du scroll
+      const scrollSpeed = 0.002;
+      zoomLevel += event.deltaY * scrollSpeed;
+
+      // Limiter entre 0 et 1
+      zoomLevel = Math.max(0, Math.min(1, zoomLevel));
+
+      // Calculer la position Z interpolée
+      camera.position.z = minZoom + (maxZoom - minZoom) * zoomLevel;
+
+      // Mettre à jour l'état isZoomedIn
+      isZoomedIn = zoomLevel > 0.5;
+
+      camera.lookAt(0, 0, 0);
+    }, { passive: false });
 
     // Déplacement de la caméra avec un clic maintenu
     window.addEventListener('mousedown', (event) => {
@@ -789,6 +818,9 @@
         camera.lookAt(0, 0, 0);
         if (progress < 1) {
           requestAnimationFrame(animateZoom);
+        } else {
+          // Initialiser le zoomLevel à 0 (position loin)
+          zoomLevel = 0;
         }
       }
       requestAnimationFrame(animateZoom);
