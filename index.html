@@ -35,8 +35,8 @@
       transform: translateX(-50%);
       display: flex;
       flex-direction: row;
-      gap: 20px;
-      padding: 15px 20px;
+      gap: 15px;
+      padding: 12px 15px;
       border-radius: 10px;
       display: none;
       opacity: 0;
@@ -47,8 +47,8 @@
       color: #55ffff;
       border: none;
       outline: none;
-      padding: 15px 35px;
-      margin: 5px;
+      padding: 12px 25px;
+      margin: 3px;
       font-size: 20px;
       cursor: pointer;
       border-radius: 50px;
@@ -76,12 +76,12 @@
     @media (max-width: 768px) {
       #ui-overlay {
         bottom: 10px;
-        gap: 15px;
-        padding: 10px 15px;
+        gap: 12px;
+        padding: 10px 12px;
       }
       #ui-overlay button {
-        padding: 12px 25px;
-        margin: 3px;
+        padding: 10px 20px;
+        margin: 2px;
         font-size: 18px;
       }
     }
@@ -131,12 +131,12 @@
       justify-content: center;
       flex-direction: column;
       color: #55ffff;
-      font-size: clamp(40px, 12vw, 216px);
+      font-size: clamp(30px, 10vw, 216px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
       font-style: normal;
       z-index: 20;
-      padding: 30px clamp(30px, 6vw, 60px);
+      padding: 30px clamp(15px, 4vw, 60px);
       box-sizing: border-box;
       overflow: visible;
       transition: background 2s ease-out, opacity 1.0s ease-out;
@@ -145,16 +145,16 @@
       #intro-overlay {
         align-items: center;
         justify-content: center;
-        font-size: clamp(35px, 10vw, 150px);
-        padding: 30px 25px;
+        font-size: clamp(25px, 8vw, 150px);
+        padding: 20px 15px;
       }
     }
     @media (max-aspect-ratio: 1/1) {
       #intro-overlay {
         align-items: center;
         justify-content: center;
-        font-size: clamp(30px, 10vw, 120px);
-        padding: 25px;
+        font-size: clamp(22px, 8vw, 120px);
+        padding: 20px 12px;
       }
     }
     #title-container {
@@ -164,28 +164,28 @@
       transition: opacity 2s ease-out;
       max-width: 100%;
       width: fit-content;
-      padding: 10px 20px;
-      margin: 20px 0;
+      padding: 5px 10px;
+      margin: 10px 0;
     }
     #title-container div {
       overflow-wrap: break-word;
       word-break: keep-all;
-      margin: 5px 0;
+      margin: 2px 0;
     }
     @media (max-width: 768px) {
       #title-container {
         text-align: center;
         width: 100%;
-        padding: 10px 30px;
-        margin: 15px 0;
+        padding: 5px 15px;
+        margin: 10px 0;
       }
     }
     @media (max-aspect-ratio: 1/1) {
       #title-container {
         text-align: center;
         width: 100%;
-        padding: 10px 30px;
-        margin: 15px 0;
+        padding: 5px 12px;
+        margin: 8px 0;
       }
     }
     #startButton {
@@ -197,7 +197,7 @@
       color: #55ffff;
       border: none;
       padding: 0;
-      font-size: clamp(100px, 20vw, 280px);
+      font-size: clamp(80px, 18vw, 280px);
       cursor: pointer;
       font-weight: 900;
       opacity: 0;
@@ -212,14 +212,14 @@
       #startButton {
         left: 50%;
         top: 70%;
-        font-size: clamp(80px, 18vw, 180px);
+        font-size: clamp(60px, 15vw, 160px);
       }
     }
     @media (max-aspect-ratio: 1/1) {
       #startButton {
         left: 50%;
         top: 68%;
-        font-size: clamp(70px, 15vw, 150px);
+        font-size: clamp(50px, 12vw, 130px);
       }
     }
     #startButton:hover {
