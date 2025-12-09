@@ -40,7 +40,7 @@
       border-radius: 10px;
       display: none;
       opacity: 0;
-      transition: opacity 1.5s ease-in;
+      transition: opacity 0.5s ease-in-out;
     }
     #ui-overlay button {
       background-color: transparent;
@@ -90,7 +90,7 @@
       justify-content: center;
       z-index: 10;
       opacity: 1;
-      transition: background-color 0.3s, box-shadow 0.3s, text-shadow 0.3s;
+      transition: background-color 0.3s, box-shadow 0.3s, text-shadow 0.3s, opacity 0.5s ease-in-out;
       display: none;
       padding: 10px;
       border-radius: 50%;
@@ -172,7 +172,7 @@
       padding: 10px 20px;
       white-space: nowrap;
       opacity: 0;
-      transition: opacity 1.5s ease-in;
+      transition: opacity 0.5s ease-in-out;
     }
   </style>
   <link rel="stylesheet" href="https://use.typekit.net/rdj2icn.css">
@@ -196,32 +196,53 @@
   <button id="arrow-right" class="arrow">&gt;</button>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
-    // Curseur personnalisé avec disparition après inactivité
+    // Curseur et boutons avec disparition après inactivité
     const customCursor = document.getElementById('custom-cursor');
-    let cursorFadeTimer;
+    const uiOverlay = document.getElementById('ui-overlay');
+    const pageTitle = document.getElementById('page-title');
+    const arrowLeft = document.getElementById('arrow-left');
+    const arrowRight = document.getElementById('arrow-right');
+    let fadeTimer;
 
-    function fadeCursorOut() {
+    function fadeUIOut() {
       customCursor.style.opacity = '0';
+      uiOverlay.style.opacity = '0';
+      pageTitle.style.opacity = '0';
+      arrowLeft.style.opacity = '0';
+      arrowRight.style.opacity = '0';
     }
 
-    function fadeCursorIn() {
+    function fadeUIIn() {
       customCursor.style.opacity = '1';
-      clearTimeout(cursorFadeTimer);
-      cursorFadeTimer = setTimeout(fadeCursorOut, 3000); // Disparaît après 3 secondes
+      // Ne faire apparaître les boutons que s'ils sont déjà affichés (pas sur page d'accueil)
+      if (uiOverlay.style.display === 'flex') {
+        uiOverlay.style.opacity = '1';
+      }
+      if (pageTitle.style.display === 'block') {
+        pageTitle.style.opacity = '1';
+      }
+      if (arrowLeft.style.display === 'flex') {
+        arrowLeft.style.opacity = '1';
+      }
+      if (arrowRight.style.display === 'flex') {
+        arrowRight.style.opacity = '1';
+      }
+      clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(fadeUIOut, 3000); // Disparaît après 3 secondes
     }
 
     document.addEventListener('mousemove', (e) => {
       customCursor.style.left = e.clientX + 'px';
       customCursor.style.top = e.clientY + 'px';
-      fadeCursorIn(); // Réapparaît au mouvement
+      fadeUIIn(); // Réapparaît au mouvement
     });
 
-    document.addEventListener('mousedown', fadeCursorIn);
-    document.addEventListener('mouseup', fadeCursorIn);
-    document.addEventListener('click', fadeCursorIn);
+    document.addEventListener('mousedown', fadeUIIn);
+    document.addEventListener('mouseup', fadeUIIn);
+    document.addEventListener('click', fadeUIIn);
 
     // Démarrer le timer initial
-    fadeCursorIn();
+    fadeUIIn();
 
     // Initialisation de la scène, caméra et rendu
     const scene = new THREE.Scene();
