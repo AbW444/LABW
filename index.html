@@ -10,7 +10,7 @@
     body { margin: 0; overflow: hidden; font-family: 'Roboto', Arial, sans-serif; background-color: #0e0e0e; }
     canvas { display: block; }
 
-    /* Curseur personnalisé - blanc solide avec effet chromatique */
+    /* Curseur personnalisé - blanc solide avec effet chromatique subtil */
     #custom-cursor {
       position: fixed;
       width: 16px;
@@ -19,9 +19,9 @@
       pointer-events: none;
       z-index: 99999;
       box-shadow:
-        0 0 6px 2px rgba(0, 252, 253, 0.6),
-        0 0 12px 3px rgba(0, 252, 253, 0.4),
-        0 0 18px 4px rgba(106, 13, 173, 0.2);
+        0 0 4px 1px rgba(85, 255, 255, 0.5),
+        0 0 8px 2px rgba(85, 255, 255, 0.3),
+        0 0 12px 3px rgba(106, 13, 173, 0.15);
       left: 0;
       top: 0;
       transform: translate(-50%, -50%);
@@ -44,7 +44,7 @@
     }
     #ui-overlay button {
       background-color: transparent;
-      color: #00fcfd;
+      color: #55ffff;
       border: none;
       outline: none;
       padding: 15px 30px;
@@ -56,7 +56,11 @@
       font-style: normal;
       text-transform: uppercase;
       opacity: 1;
-      transition: background-color 0.3s, box-shadow 0.3s;
+      transition: background-color 0.3s, box-shadow 0.3s, text-shadow 0.3s;
+      text-shadow:
+        0 0 4px rgba(85, 255, 255, 0.5),
+        0 0 8px rgba(85, 255, 255, 0.3),
+        0 0 12px rgba(106, 13, 173, 0.15);
     }
     #resetCamera:hover, #toggleZoom:hover {
       background-color: rgba(106, 13, 173, 0.3);
@@ -76,7 +80,7 @@
       top: 50%;
       transform: translateY(-50%);
       background-color: transparent;
-      color: #00fcfd;
+      color: #55ffff;
       border: none;
       cursor: pointer;
       font-size: 60px;
@@ -86,10 +90,14 @@
       justify-content: center;
       z-index: 10;
       opacity: 1;
-      transition: background-color 0.3s, box-shadow 0.3s;
+      transition: background-color 0.3s, box-shadow 0.3s, text-shadow 0.3s;
       display: none;
       padding: 10px;
       border-radius: 50%;
+      text-shadow:
+        0 0 4px rgba(85, 255, 255, 0.5),
+        0 0 8px rgba(85, 255, 255, 0.3),
+        0 0 12px rgba(106, 13, 173, 0.15);
     }
     .arrow:hover {
       text-shadow:
@@ -105,12 +113,13 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 1);
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(0px);
       display: flex;
       align-items: flex-start;
       justify-content: center;
       flex-direction: column;
-      color: #00fcfd;
+      color: #55ffff;
       font-size: clamp(80px, 15vw, 216px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
@@ -119,7 +128,7 @@
       padding-left: 40px;
       box-sizing: border-box;
       overflow: hidden;
-      transition: background 2s ease-out, opacity 1.0s ease-out;
+      transition: background 2s ease-out, backdrop-filter 2s ease-out, opacity 1.0s ease-out;
     }
     #title-container {
       text-align: left;
@@ -133,7 +142,7 @@
       left: 68%;
       transform: translate(-50%, -50%);
       background-color: transparent;
-      color: #00fcfd;
+      color: #55ffff;
       border: none;
       padding: 0;
       font-size: 216px;
@@ -152,7 +161,7 @@
       top: 5px;
       left: 50%;
       transform: translateX(-50%);
-      color: #00fcfd;
+      color: #55ffff;
       font-size: clamp(22px, 4vw, 38px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
@@ -830,9 +839,10 @@ window.addEventListener('DOMContentLoaded', () => {
     titleContainer.style.opacity = '0.5';
   }, 400);
 
-  // Phase 3 (1200ms): tout devient visible progressivement
+  // Phase 3 (1200ms): tout devient visible progressivement avec flou
   setTimeout(() => {
-    introOverlay.style.background = 'rgba(0, 0, 0, 0.4)';
+    introOverlay.style.background = 'rgba(0, 0, 0, 0.3)';
+    introOverlay.style.backdropFilter = 'blur(10px)';
     titleContainer.style.opacity = '1';
   }, 1200);
 
