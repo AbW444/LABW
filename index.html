@@ -10,7 +10,7 @@
     body { margin: 0; overflow: hidden; font-family: 'Roboto', Arial, sans-serif; background-color: #0e0e0e; }
     canvas { display: block; }
 
-    /* Curseur personnalisé carré avec fusion */
+    /* Curseur personnalisé carré blanc miroir */
     #custom-cursor {
       position: fixed;
       width: 16px;
@@ -18,7 +18,7 @@
       background-color: white;
       pointer-events: none;
       z-index: 99999;
-      mix-blend-mode: difference;
+      mix-blend-mode: screen;
       left: 0;
       top: 0;
       transform: translate(-50%, -50%);
