@@ -272,18 +272,18 @@
     // Fonction pour générer une couleur d'étoile réaliste
     function getRealisticStarColor() {
       const rand = Math.random();
-      if (rand < 0.6) {
-        // 60% - Étoiles blanches/blanc-bleuté (comme notre soleil et plus chaudes)
+      if (rand < 0.5) {
+        // 50% - Étoiles blanches éclatantes
         return new THREE.Color(1, 1, 1);
-      } else if (rand < 0.8) {
-        // 20% - Étoiles jaune-blanc
-        return new THREE.Color(1, 0.98, 0.9);
-      } else if (rand < 0.92) {
-        // 12% - Étoiles bleu-blanc (très chaudes)
-        return new THREE.Color(0.9, 0.95, 1);
+      } else if (rand < 0.7) {
+        // 20% - Étoiles bleu-blanc (très chaudes) - PLUS PRONONCÉ
+        return new THREE.Color(0.7, 0.85, 1);
+      } else if (rand < 0.85) {
+        // 15% - Étoiles jaune chaud - PLUS PRONONCÉ
+        return new THREE.Color(1, 0.95, 0.7);
       } else {
-        // 8% - Étoiles orangées/rougeâtres (plus froides)
-        return new THREE.Color(1, 0.85, 0.7);
+        // 15% - Étoiles orangées/rougeâtres (plus froides) - PLUS PRONONCÉ
+        return new THREE.Color(1, 0.7, 0.5);
       }
     }
 
@@ -307,10 +307,10 @@
     bigStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bigStarsVertices, 3));
     bigStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(bigStarsColors, 3));
     const bigStarsMaterial = new THREE.PointsMaterial({
-      size: 0.025,
+      size: 0.045, // BEAUCOUP PLUS GROSSES
       vertexColors: true,
       transparent: true,
-      opacity: 0.9,
+      opacity: 1.0, // PLEINE LUMINOSITÉ
     });
     const bigStars = new THREE.Points(bigStarsGeometry, bigStarsMaterial);
     scene.add(bigStars);
@@ -333,10 +333,10 @@
     mediumStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(mediumStarsVertices, 3));
     mediumStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(mediumStarsColors, 3));
     const mediumStarsMaterial = new THREE.PointsMaterial({
-      size: 0.015,
+      size: 0.020, // Taille moyenne visible
       vertexColors: true,
       transparent: true,
-      opacity: 0.75,
+      opacity: 0.7, // Luminosité moyenne
     });
     const mediumStars = new THREE.Points(mediumStarsGeometry, mediumStarsMaterial);
     scene.add(mediumStars);
@@ -359,10 +359,10 @@
     smallStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(smallStarsVertices, 3));
     smallStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(smallStarsColors, 3));
     const smallStarsMaterial = new THREE.PointsMaterial({
-      size: 0.008,
+      size: 0.010, // Petites mais visibles
       vertexColors: true,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.4, // Très discrètes pour la profondeur
     });
     const smallStars = new THREE.Points(smallStarsGeometry, smallStarsMaterial);
     scene.add(smallStars);
