@@ -6,8 +6,23 @@
   <title>AURORA UNREALIS</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' fill='%2300fcfd' rx='5'/></svg>">
   <style>
+    * { cursor: none !important; }
     body { margin: 0; overflow: hidden; font-family: 'Roboto', Arial, sans-serif; background-color: #0e0e0e; }
     canvas { display: block; }
+
+    /* Curseur personnalisé carré avec fusion */
+    #custom-cursor {
+      position: fixed;
+      width: 16px;
+      height: 16px;
+      background-color: white;
+      pointer-events: none;
+      z-index: 99999;
+      mix-blend-mode: difference;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -50%);
+    }
     #ui-overlay {
       position: absolute;
       bottom: 5px;
@@ -148,6 +163,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div id="custom-cursor"></div>
   <div id="page-title" onclick="location.reload();">AURORA UNREALIS</div>
   <div id="intro-overlay">
     <div id="title-container">
@@ -164,6 +180,13 @@
   <button id="arrow-right" class="arrow">&gt;</button>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
+    // Curseur personnalisé
+    const customCursor = document.getElementById('custom-cursor');
+    document.addEventListener('mousemove', (e) => {
+      customCursor.style.left = e.clientX + 'px';
+      customCursor.style.top = e.clientY + 'px';
+    });
+
     // Initialisation de la scène, caméra et rendu
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
