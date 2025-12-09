@@ -619,6 +619,15 @@
         }
       }
 
+      // Zoom fluide progressif (interpolation vers la cible)
+      if (Math.abs(targetZoomLevel - zoomLevel) > 0.001) {
+        // Lerp fluide vers la position cible
+        zoomLevel += (targetZoomLevel - zoomLevel) * 0.1;
+        // Calculer la position Z interpolée
+        camera.position.z = minZoom + (maxZoom - minZoom) * zoomLevel;
+        camera.lookAt(0, 0, 0);
+      }
+
       renderer.render(scene, camera);
     }
     animate();
@@ -671,6 +680,7 @@
 
     // Variable pour le niveau de zoom (0 = loin, 1 = proche)
     let zoomLevel = 0;
+    let targetZoomLevel = 0; // Position cible pour le scroll
     const minZoom = 25; // Position loin
     const maxZoom = 2;  // Position proche
 
@@ -692,8 +702,9 @@
           requestAnimationFrame(animateZoom);
         } else {
           isZoomedIn = !isZoomedIn;
-          // Mettre à jour le zoomLevel en fonction du nouvel état
+          // Mettre à jour les niveaux de zoom
           zoomLevel = isZoomedIn ? 1 : 0;
+          targetZoomLevel = zoomLevel;
         }
       }
       requestAnimationFrame(animateZoom);
@@ -705,20 +716,15 @@
 
       event.preventDefault();
 
-      // Ajuster le niveau de zoom basé sur la direction du scroll
+      // Ajuster le niveau de zoom cible basé sur la direction du scroll
       const scrollSpeed = 0.002;
-      zoomLevel += event.deltaY * scrollSpeed;
+      targetZoomLevel += event.deltaY * scrollSpeed;
 
       // Limiter entre 0 et 1
-      zoomLevel = Math.max(0, Math.min(1, zoomLevel));
-
-      // Calculer la position Z interpolée
-      camera.position.z = minZoom + (maxZoom - minZoom) * zoomLevel;
+      targetZoomLevel = Math.max(0, Math.min(1, targetZoomLevel));
 
       // Mettre à jour l'état isZoomedIn
-      isZoomedIn = zoomLevel > 0.5;
-
-      camera.lookAt(0, 0, 0);
+      isZoomedIn = targetZoomLevel > 0.5;
     }, { passive: false });
 
     // Déplacement de la caméra avec un clic maintenu
@@ -816,8 +822,9 @@
         if (progress < 1) {
           requestAnimationFrame(animateZoom);
         } else {
-          // Initialiser le zoomLevel à 0 (position loin)
+          // Initialiser les niveaux de zoom à 0 (position loin)
           zoomLevel = 0;
+          targetZoomLevel = 0;
         }
       }
       requestAnimationFrame(animateZoom);
