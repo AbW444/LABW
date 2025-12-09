@@ -30,13 +30,13 @@
     }
     #ui-overlay {
       position: absolute;
-      bottom: 2px;
+      bottom: 15px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
       flex-direction: row;
-      gap: 10px;
-      padding: 10px;
+      gap: 20px;
+      padding: 15px 20px;
       border-radius: 10px;
       display: none;
       opacity: 0;
@@ -47,7 +47,8 @@
       color: #55ffff;
       border: none;
       outline: none;
-      padding: 15px 30px;
+      padding: 15px 35px;
+      margin: 5px;
       font-size: 20px;
       cursor: pointer;
       border-radius: 50px;
@@ -73,8 +74,14 @@
       outline: none;
     }
     @media (max-width: 768px) {
-      #ui-overlay button {
+      #ui-overlay {
+        bottom: 10px;
+        gap: 15px;
         padding: 10px 15px;
+      }
+      #ui-overlay button {
+        padding: 12px 25px;
+        margin: 3px;
         font-size: 18px;
       }
     }
@@ -95,7 +102,7 @@
       opacity: 1;
       transition: text-shadow 0.3s, transform 0.3s, opacity 0.5s ease-in-out;
       display: none;
-      padding: 10px;
+      padding: 20px;
       border-radius: 50%;
       text-shadow:
         0 0 8px rgba(85, 255, 255, 0.9),
@@ -109,8 +116,8 @@
         0 0 40px rgba(85, 255, 255, 0.6),
         0 0 60px rgba(85, 255, 255, 0.4);
     }
-    #arrow-left { left: 80px; }
-    #arrow-right { right: 80px; }
+    #arrow-left { left: clamp(20px, 8vw, 80px); }
+    #arrow-right { right: clamp(20px, 8vw, 80px); }
     #intro-overlay {
       position: absolute;
       top: 0;
@@ -129,9 +136,9 @@
       font-weight: 700;
       font-style: normal;
       z-index: 20;
-      padding: 20px clamp(20px, 5vw, 40px);
+      padding: 30px clamp(30px, 6vw, 60px);
       box-sizing: border-box;
-      overflow: hidden;
+      overflow: visible;
       transition: background 2s ease-out, opacity 1.0s ease-out;
     }
     @media (max-width: 768px) {
@@ -139,7 +146,7 @@
         align-items: center;
         justify-content: center;
         font-size: clamp(35px, 10vw, 150px);
-        padding: 20px;
+        padding: 30px 25px;
       }
     }
     @media (max-aspect-ratio: 1/1) {
@@ -147,6 +154,7 @@
         align-items: center;
         justify-content: center;
         font-size: clamp(30px, 10vw, 120px);
+        padding: 25px;
       }
     }
     #title-container {
@@ -156,24 +164,28 @@
       transition: opacity 2s ease-out;
       max-width: 100%;
       width: fit-content;
-      padding: 0 10px;
+      padding: 10px 20px;
+      margin: 20px 0;
     }
     #title-container div {
       overflow-wrap: break-word;
       word-break: keep-all;
+      margin: 5px 0;
     }
     @media (max-width: 768px) {
       #title-container {
         text-align: center;
         width: 100%;
-        padding: 0 20px;
+        padding: 10px 30px;
+        margin: 15px 0;
       }
     }
     @media (max-aspect-ratio: 1/1) {
       #title-container {
         text-align: center;
         width: 100%;
-        padding: 0 20px;
+        padding: 10px 30px;
+        margin: 15px 0;
       }
     }
     #startButton {
@@ -219,7 +231,7 @@
     }
     #page-title {
       position: absolute;
-      top: 5px;
+      top: 15px;
       left: 50%;
       transform: translateX(-50%);
       color: #55ffff;
@@ -230,10 +242,19 @@
       z-index: 15;
       display: none;
       cursor: pointer;
-      padding: 10px 20px;
+      padding: 12px 25px;
       white-space: nowrap;
       opacity: 0;
       transition: opacity 0.5s ease-in-out;
+      margin: 0 20px;
+    }
+    @media (max-width: 768px) {
+      #page-title {
+        top: 10px;
+        font-size: clamp(18px, 3.5vw, 32px);
+        padding: 10px 20px;
+        margin: 0 15px;
+      }
     }
   </style>
   <link rel="stylesheet" href="https://use.typekit.net/rdj2icn.css">
