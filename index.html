@@ -124,12 +124,12 @@
       justify-content: center;
       flex-direction: column;
       color: #55ffff;
-      font-size: clamp(80px, 15vw, 216px);
+      font-size: clamp(40px, 12vw, 216px);
       font-family: "new-astro", sans-serif;
       font-weight: 700;
       font-style: normal;
       z-index: 20;
-      padding-left: clamp(20px, 5vw, 40px);
+      padding: 20px clamp(20px, 5vw, 40px);
       box-sizing: border-box;
       overflow: hidden;
       transition: background 2s ease-out, opacity 1.0s ease-out;
@@ -137,14 +137,16 @@
     @media (max-width: 768px) {
       #intro-overlay {
         align-items: center;
-        padding-left: 20px;
-        padding-right: 20px;
+        justify-content: center;
+        font-size: clamp(35px, 10vw, 150px);
+        padding: 20px;
       }
     }
     @media (max-aspect-ratio: 1/1) {
       #intro-overlay {
         align-items: center;
         justify-content: center;
+        font-size: clamp(30px, 10vw, 120px);
       }
     }
     #title-container {
@@ -152,16 +154,26 @@
       line-height: 0.9;
       opacity: 0;
       transition: opacity 2s ease-out;
-      max-width: 90%;
+      max-width: 100%;
+      width: fit-content;
+      padding: 0 10px;
+    }
+    #title-container div {
+      overflow-wrap: break-word;
+      word-break: keep-all;
     }
     @media (max-width: 768px) {
       #title-container {
         text-align: center;
+        width: 100%;
+        padding: 0 20px;
       }
     }
     @media (max-aspect-ratio: 1/1) {
       #title-container {
         text-align: center;
+        width: 100%;
+        padding: 0 20px;
       }
     }
     #startButton {
@@ -173,7 +185,7 @@
       color: #55ffff;
       border: none;
       padding: 0;
-      font-size: clamp(150px, 25vw, 280px);
+      font-size: clamp(100px, 20vw, 280px);
       cursor: pointer;
       font-weight: 900;
       opacity: 0;
@@ -188,12 +200,14 @@
       #startButton {
         left: 50%;
         top: 70%;
+        font-size: clamp(80px, 18vw, 180px);
       }
     }
     @media (max-aspect-ratio: 1/1) {
       #startButton {
         left: 50%;
-        top: 65%;
+        top: 68%;
+        font-size: clamp(70px, 15vw, 150px);
       }
     }
     #startButton:hover {
