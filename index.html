@@ -415,15 +415,6 @@
     const minZoom = -25; // Position loin (inversé)
     const maxZoom = -2;  // Position proche (inversé)
 
-    // Variables pour la fluidité des mouvements (inertie)
-    let rotationVelocity = { x: 0, y: 0 };
-    let targetRotation = {
-      sceneX: 0, sceneY: 0,
-      cameraX: 0, cameraY: 0
-    };
-    const rotationDamping = 0.92; // Amortissement de l'inertie (plus proche de 1 = plus d'inertie)
-    const rotationLerpFactor = 0.15; // Facteur d'interpolation (plus élevé = plus réactif)
-
     const textureLoader = new THREE.TextureLoader();
 
     // Saturation des couleurs
@@ -766,12 +757,6 @@
     sceneGroup.position.set(1.5, 0, -2);
     sceneGroup.rotation.y = 0.15; // Rotation légère pour le désaxage
 
-    // Initialiser les rotations cibles avec les valeurs actuelles
-    targetRotation.sceneX = sceneGroup.rotation.x;
-    targetRotation.sceneY = sceneGroup.rotation.y;
-    targetRotation.cameraX = camera.rotation.x;
-    targetRotation.cameraY = camera.rotation.y;
-
     // Animation
     function animate() {
       requestAnimationFrame(animate);
@@ -812,29 +797,6 @@
         zoomLevel += (targetZoomLevel - zoomLevel) * 0.1;
         // Calculer la position Z interpolée (inversée pour le groupe)
         sceneGroup.position.z = minZoom + (maxZoom - minZoom) * zoomLevel;
-      }
-
-      // Appliquer l'inertie et l'interpolation aux rotations
-      if (!isResetAnimating) {
-        // Appliquer la vélocité avec amortissement
-        rotationVelocity.x *= rotationDamping;
-        rotationVelocity.y *= rotationDamping;
-
-        if (viewMode === 'scene') {
-          // Mode Scène : interpolation vers la rotation cible + inertie
-          targetRotation.sceneX += rotationVelocity.y;
-          targetRotation.sceneY += rotationVelocity.x;
-
-          sceneGroup.rotation.x += (targetRotation.sceneX - sceneGroup.rotation.x) * rotationLerpFactor;
-          sceneGroup.rotation.y += (targetRotation.sceneY - sceneGroup.rotation.y) * rotationLerpFactor;
-        } else {
-          // Mode Caméra : interpolation vers la rotation cible + inertie
-          targetRotation.cameraX += rotationVelocity.y;
-          targetRotation.cameraY += rotationVelocity.x;
-
-          camera.rotation.x += (targetRotation.cameraX - camera.rotation.x) * rotationLerpFactor;
-          camera.rotation.y += (targetRotation.cameraY - camera.rotation.y) * rotationLerpFactor;
-        }
       }
 
       renderer.render(scene, camera);
@@ -1007,7 +969,6 @@
 
     window.addEventListener('mouseup', () => {
       isDragging = false;
-      // La vélocité continue, créant l'effet d'inertie
     });
 
     window.addEventListener('mousemove', (event) => {
@@ -1017,19 +978,14 @@
           y: event.clientY - previousMousePosition.y,
         };
 
-        // Calculer la vélocité (avec sensibilité ajustée pour plus de fluidité)
-        const sensitivity = 0.003; // Réduit pour plus de douceur
-        rotationVelocity.x = deltaMove.x * sensitivity;
-        rotationVelocity.y = deltaMove.y * sensitivity;
-
         if (viewMode === 'scene') {
-          // Mode Scène : Mettre à jour la rotation cible
-          targetRotation.sceneY += rotationVelocity.x;
-          targetRotation.sceneX += rotationVelocity.y;
+          // Mode Scène : Bouger les pixels (le groupe)
+          sceneGroup.rotation.y += deltaMove.x * 0.005;
+          sceneGroup.rotation.x += deltaMove.y * 0.005;
         } else {
-          // Mode Caméra : Mettre à jour la rotation cible
-          targetRotation.cameraY -= rotationVelocity.x;
-          targetRotation.cameraX -= rotationVelocity.y;
+          // Mode Caméra : Bouger l'angle de vue de la caméra
+          camera.rotation.y -= deltaMove.x * 0.005;
+          camera.rotation.x -= deltaMove.y * 0.005;
         }
 
         previousMousePosition = { x: event.clientX, y: event.clientY };
@@ -1043,32 +999,25 @@
         modeSceneBtn.classList.add('active');
         modeCameraBtn.classList.remove('active');
 
-        // Arrêter la vélocité lors du changement de mode
-        rotationVelocity.x = 0;
-        rotationVelocity.y = 0;
-
         // Animer le retour de la caméra à la position initiale
         const transitionDuration = 1000;
         const startTime = performance.now();
         const startRotation = new THREE.Euler().copy(camera.rotation);
-        const targetRotationEuler = new THREE.Euler(0, 0, 0);
+        const targetRotation = new THREE.Euler(0, 0, 0);
 
         function animateCameraReset(currentTime) {
           const elapsed = currentTime - startTime;
           const linearProgress = Math.min(elapsed / transitionDuration, 1);
           const easedProgress = easeInOutCubic(linearProgress);
 
-          camera.rotation.x = startRotation.x + (targetRotationEuler.x - startRotation.x) * easedProgress;
-          camera.rotation.y = startRotation.y + (targetRotationEuler.y - startRotation.y) * easedProgress;
-          camera.rotation.z = startRotation.z + (targetRotationEuler.z - startRotation.z) * easedProgress;
+          camera.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easedProgress;
+          camera.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easedProgress;
+          camera.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easedProgress;
 
           if (linearProgress < 1) {
             requestAnimationFrame(animateCameraReset);
           } else {
             camera.lookAt(0, 0, -1);
-            // Synchroniser les rotations cibles
-            targetRotation.cameraX = camera.rotation.x;
-            targetRotation.cameraY = camera.rotation.y;
           }
         }
         requestAnimationFrame(animateCameraReset);
@@ -1081,17 +1030,13 @@
         modeCameraBtn.classList.add('active');
         modeSceneBtn.classList.remove('active');
 
-        // Arrêter la vélocité lors du changement de mode
-        rotationVelocity.x = 0;
-        rotationVelocity.y = 0;
-
         // Animer le retour du groupe à la position initiale
         const transitionDuration = 1000;
         const startTime = performance.now();
         const startPosition = sceneGroup.position.clone();
         const startRotation = new THREE.Euler().copy(sceneGroup.rotation);
         const targetPosition = new THREE.Vector3(0, 0, -25);
-        const targetRotationEuler = new THREE.Euler(0, 0, 0);
+        const targetRotation = new THREE.Euler(0, 0, 0);
 
         function animateGroupReset(currentTime) {
           const elapsed = currentTime - startTime;
@@ -1099,9 +1044,9 @@
           const easedProgress = easeInOutCubic(linearProgress);
 
           sceneGroup.position.lerpVectors(startPosition, targetPosition, easedProgress);
-          sceneGroup.rotation.x = startRotation.x + (targetRotationEuler.x - startRotation.x) * easedProgress;
-          sceneGroup.rotation.y = startRotation.y + (targetRotationEuler.y - startRotation.y) * easedProgress;
-          sceneGroup.rotation.z = startRotation.z + (targetRotationEuler.z - startRotation.z) * easedProgress;
+          sceneGroup.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easedProgress;
+          sceneGroup.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easedProgress;
+          sceneGroup.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easedProgress;
 
           if (linearProgress < 1) {
             requestAnimationFrame(animateGroupReset);
@@ -1110,9 +1055,6 @@
             camera.position.set(0, 0, 0);
             camera.rotation.set(0, 0, 0);
             camera.lookAt(0, 0, -1);
-            // Synchroniser les rotations cibles
-            targetRotation.sceneX = sceneGroup.rotation.x;
-            targetRotation.sceneY = sceneGroup.rotation.y;
           }
         }
         requestAnimationFrame(animateGroupReset);
@@ -1243,19 +1185,14 @@ window.addEventListener('touchmove', (event) => {
       y: touchMovePosition.y - touchStartPosition.y,
     };
 
-    // Calculer la vélocité (même système que la souris)
-    const sensitivity = 0.003;
-    rotationVelocity.x = deltaMove.x * sensitivity;
-    rotationVelocity.y = deltaMove.y * sensitivity;
-
     if (viewMode === 'scene') {
-      // Mode Scène : Mettre à jour la rotation cible
-      targetRotation.sceneY += rotationVelocity.x;
-      targetRotation.sceneX += rotationVelocity.y;
+      // Mode Scène : Bouger les pixels (le groupe)
+      sceneGroup.rotation.y += deltaMove.x * 0.005;
+      sceneGroup.rotation.x += deltaMove.y * 0.005;
     } else {
-      // Mode Caméra : Mettre à jour la rotation cible
-      targetRotation.cameraY -= rotationVelocity.x;
-      targetRotation.cameraX -= rotationVelocity.y;
+      // Mode Caméra : Bouger l'angle de vue de la caméra
+      camera.rotation.y -= deltaMove.x * 0.005;
+      camera.rotation.x -= deltaMove.y * 0.005;
     }
 
     // Mettre à jour la position initiale pour le prochain mouvement
@@ -1265,7 +1202,6 @@ window.addEventListener('touchmove', (event) => {
 
 window.addEventListener('touchend', () => {
   isTouchDragging = false;
-  // La vélocité continue, créant l'effet d'inertie
 });
 
 // Animation de chargement au démarrage
