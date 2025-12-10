@@ -256,6 +256,57 @@
         margin: 0 15px;
       }
     }
+    /* Boutons de mode de vue */
+    #view-mode-container {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 15;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    .view-mode-btn {
+      width: 50px;
+      height: 50px;
+      background-color: transparent;
+      border: 2px solid #55ffff;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: #55ffff;
+      transition: all 0.3s ease;
+      text-shadow:
+        0 0 8px rgba(85, 255, 255, 0.6),
+        0 0 16px rgba(85, 255, 255, 0.4);
+    }
+    .view-mode-btn:hover {
+      transform: scale(1.1);
+      background-color: rgba(85, 255, 255, 0.1);
+      box-shadow: 0 0 15px rgba(85, 255, 255, 0.5);
+    }
+    .view-mode-btn.active {
+      background-color: rgba(85, 255, 255, 0.2);
+      border-color: #00fcfd;
+      box-shadow: 0 0 20px rgba(85, 255, 255, 0.7);
+    }
+    @media (max-width: 768px) {
+      #view-mode-container {
+        bottom: 15px;
+        right: 15px;
+        gap: 8px;
+      }
+      .view-mode-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+      }
+    }
   </style>
   <link rel="stylesheet" href="https://use.typekit.net/rdj2icn.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
@@ -276,6 +327,10 @@
   </div>
   <button id="arrow-left" class="arrow">&lt;</button>
   <button id="arrow-right" class="arrow">&gt;</button>
+  <div id="view-mode-container">
+    <button id="mode-scene" class="view-mode-btn active" title="Mode Scène - Bouger les pixels">⊛</button>
+    <button id="mode-camera" class="view-mode-btn" title="Mode Caméra - Regarder autour">◉</button>
+  </div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
     // Curseur et boutons avec disparition après inactivité
@@ -284,8 +339,14 @@
     const pageTitle = document.getElementById('page-title');
     const arrowLeft = document.getElementById('arrow-left');
     const arrowRight = document.getElementById('arrow-right');
+    const viewModeContainer = document.getElementById('view-mode-container');
+    const modeSceneBtn = document.getElementById('mode-scene');
+    const modeCameraBtn = document.getElementById('mode-camera');
     let fadeTimer;
     let buttonsAreVisible = false; // Flag pour savoir si les boutons sont affichés
+
+    // Mode de vue : 'scene' (pixels bougent) ou 'camera' (caméra regarde autour)
+    let viewMode = 'scene';
 
     function fadeUIOut() {
       customCursor.style.opacity = '0';
@@ -293,6 +354,7 @@
         uiOverlay.style.opacity = '0';
         arrowLeft.style.opacity = '0';
         arrowRight.style.opacity = '0';
+        viewModeContainer.style.opacity = '0';
       }
       // pageTitle ne disparaît jamais
     }
@@ -304,6 +366,7 @@
         uiOverlay.style.opacity = '1';
         arrowLeft.style.opacity = '1';
         arrowRight.style.opacity = '1';
+        viewModeContainer.style.opacity = '1';
       }
       clearTimeout(fadeTimer);
       fadeTimer = setTimeout(fadeUIOut, 3000); // Disparaît après 3 secondes
@@ -667,7 +730,9 @@
     camera.lookAt(0, 0, -1);
 
     // Position initiale du groupe (simule la caméra à z=2)
-    sceneGroup.position.set(0, 0, -2);
+    // Légèrement désaxé vers la droite pour que l'utilisateur voit légèrement à gauche
+    sceneGroup.position.set(1.5, 0, -2);
+    sceneGroup.rotation.y = 0.15; // Rotation légère pour le désaxage
 
     // Animation
     function animate() {
@@ -731,7 +796,9 @@
     document.getElementById('resetCamera').addEventListener('click', () => {
       const resetDuration = 2000;
       const startPosition = sceneGroup.position.clone();
-      const targetPosition = new THREE.Vector3(0, 0, -25); // Inversé
+      const startRotation = new THREE.Euler().copy(sceneGroup.rotation);
+      const targetPosition = new THREE.Vector3(0, 0, -25); // Position loin et centré
+      const targetRotation = new THREE.Euler(0, 0, 0); // Rotation neutre
       const startTime = performance.now();
 
       isResetAnimating = true;
@@ -749,7 +816,11 @@
         const linearProgress = Math.min(elapsed / resetDuration, 1);
         const easedProgress = easeInOutCubic(linearProgress);
 
+        // Interpoler position et rotation
         sceneGroup.position.lerpVectors(startPosition, targetPosition, easedProgress);
+        sceneGroup.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easedProgress;
+        sceneGroup.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easedProgress;
+        sceneGroup.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easedProgress;
 
         if (linearProgress < 1) {
           requestAnimationFrame(animateReset);
@@ -826,11 +897,41 @@
           y: event.clientY - previousMousePosition.y,
         };
 
-        // Inverser les rotations pour le groupe
-        sceneGroup.rotation.y += deltaMove.x * 0.005;
-        sceneGroup.rotation.x += deltaMove.y * 0.005;
+        if (viewMode === 'scene') {
+          // Mode Scène : Bouger les pixels (le groupe)
+          sceneGroup.rotation.y += deltaMove.x * 0.005;
+          sceneGroup.rotation.x += deltaMove.y * 0.005;
+        } else {
+          // Mode Caméra : Bouger l'angle de vue de la caméra
+          camera.rotation.y -= deltaMove.x * 0.005;
+          camera.rotation.x -= deltaMove.y * 0.005;
+        }
 
         previousMousePosition = { x: event.clientX, y: event.clientY };
+      }
+    });
+
+    // Gestion des boutons de mode de vue
+    modeSceneBtn.addEventListener('click', () => {
+      if (viewMode !== 'scene') {
+        viewMode = 'scene';
+        modeSceneBtn.classList.add('active');
+        modeCameraBtn.classList.remove('active');
+        // Réinitialiser la rotation de la caméra
+        camera.rotation.set(0, 0, 0);
+        camera.lookAt(0, 0, -1);
+      }
+    });
+
+    modeCameraBtn.addEventListener('click', () => {
+      if (viewMode !== 'camera') {
+        viewMode = 'camera';
+        modeCameraBtn.classList.add('active');
+        modeSceneBtn.classList.remove('active');
+        // Optionnel : réinitialiser la caméra
+        camera.position.set(0, 0, 0);
+        camera.rotation.set(0, 0, 0);
+        camera.lookAt(0, 0, -1);
       }
     });
 
@@ -866,11 +967,13 @@
         const uiOverlay = document.getElementById('ui-overlay');
         const arrowLeft = document.getElementById('arrow-left');
         const arrowRight = document.getElementById('arrow-right');
+        const viewModeContainer = document.getElementById('view-mode-container');
 
         pageTitle.style.display = 'block';
         uiOverlay.style.display = 'flex';
         arrowLeft.style.display = 'flex';
         arrowRight.style.display = 'flex';
+        viewModeContainer.style.display = 'flex';
 
         // Déclencher l'animation d'opacité après un court délai
         setTimeout(() => {
@@ -878,24 +981,30 @@
           uiOverlay.style.opacity = '1';
         }, 50);
 
-        // Faire apparaître les flèches après le titre
+        // Faire apparaître les flèches et les boutons de mode après le titre
         setTimeout(() => {
           arrowLeft.style.opacity = '1';
           arrowRight.style.opacity = '1';
+          viewModeContainer.style.opacity = '1';
           // Activer le flag pour permettre le fade in/out des boutons
           buttonsAreVisible = true;
         }, 800);
       }, 1000);
 
-      // Déclencher le zoom arrière du groupe (inversé)
+      // Déclencher le zoom arrière du groupe (inversé) et conserver le désaxage
       const zoomDuration = 1500;
       const startPosition = sceneGroup.position.clone();
-      const targetPosition = new THREE.Vector3(0, 0, -25);
+      const startRotation = new THREE.Euler().copy(sceneGroup.rotation);
+      const targetPosition = new THREE.Vector3(1.5, 0, -25); // Conserver le désaxage en X
+      const targetRotation = new THREE.Euler(0, 0.15, 0); // Conserver la rotation désaxée
       const startTime = performance.now();
       function animateZoom(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / zoomDuration, 1);
         sceneGroup.position.lerpVectors(startPosition, targetPosition, progress);
+        sceneGroup.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * progress;
+        sceneGroup.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * progress;
+        sceneGroup.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * progress;
         if (progress < 1) {
           requestAnimationFrame(animateZoom);
         } else {
@@ -954,9 +1063,15 @@ window.addEventListener('touchmove', (event) => {
       y: touchMovePosition.y - touchStartPosition.y,
     };
 
-    // Appliquer les rotations au groupe (inversées)
-    sceneGroup.rotation.y += deltaMove.x * 0.005; // Ajuster la sensibilité ici
-    sceneGroup.rotation.x += deltaMove.y * 0.005;
+    if (viewMode === 'scene') {
+      // Mode Scène : Bouger les pixels (le groupe)
+      sceneGroup.rotation.y += deltaMove.x * 0.005;
+      sceneGroup.rotation.x += deltaMove.y * 0.005;
+    } else {
+      // Mode Caméra : Bouger l'angle de vue de la caméra
+      camera.rotation.y -= deltaMove.x * 0.005;
+      camera.rotation.x -= deltaMove.y * 0.005;
+    }
 
     // Mettre à jour la position initiale pour le prochain mouvement
     touchStartPosition = touchMovePosition;
