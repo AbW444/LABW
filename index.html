@@ -30,7 +30,7 @@
     }
     #ui-overlay {
       position: absolute;
-      bottom: 15px;
+      bottom: 20px; /* Aligné avec les marges standard */
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -63,7 +63,7 @@
         0 0 16px rgba(85, 255, 255, 0.6),
         0 0 24px rgba(106, 13, 173, 0.4);
     }
-    #resetCamera:hover, #toggleZoom:hover {
+    #resetCamera:hover {
       transform: scale(1.15);
       text-shadow:
         0 0 20px rgba(85, 255, 255, 0.8),
@@ -75,7 +75,7 @@
     }
     @media (max-width: 768px) {
       #ui-overlay {
-        bottom: 10px;
+        bottom: 15px;
         gap: 12px;
         padding: 10px 12px;
       }
@@ -124,7 +124,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 1); /* Commence à 100% opacité */
       backdrop-filter: blur(0.5px);
       display: flex;
       align-items: flex-start;
@@ -139,7 +139,7 @@
       padding: 30px clamp(15px, 4vw, 60px);
       box-sizing: border-box;
       overflow: visible;
-      transition: background 2s ease-out, opacity 1.0s ease-out;
+      transition: background 1.5s ease-out, opacity 1.0s ease-out;
     }
     @media (max-width: 768px) {
       #intro-overlay {
@@ -161,7 +161,7 @@
       text-align: left;
       line-height: 0.9;
       opacity: 0;
-      transition: opacity 2s ease-out;
+      transition: opacity 0.8s ease-out; /* Accéléré */
       max-width: 100%;
       width: fit-content;
       padding: 5px 10px;
@@ -202,7 +202,7 @@
       font-weight: 900;
       opacity: 0;
       border-radius: 50%;
-      transition: text-shadow 0.3s, transform 0.3s, opacity 3.5s ease-out;
+      transition: text-shadow 0.3s, transform 0.3s, opacity 0.8s ease-out; /* Accéléré */
       text-shadow:
         0 0 8px rgba(85, 255, 255, 0.9),
         0 0 16px rgba(85, 255, 255, 0.6),
@@ -231,7 +231,7 @@
     }
     #page-title {
       position: absolute;
-      top: 15px;
+      top: 20px; /* Aligné avec la marge du bas */
       left: 50%;
       transform: translateX(-50%);
       color: #55ffff;
@@ -250,7 +250,7 @@
     }
     @media (max-width: 768px) {
       #page-title {
-        top: 10px;
+        top: 15px;
         font-size: clamp(18px, 3.5vw, 32px);
         padding: 10px 20px;
         margin: 0 15px;
@@ -287,13 +287,15 @@
     }
     .view-mode-btn:hover {
       transform: scale(1.1);
-      background-color: rgba(85, 255, 255, 0.1);
+      background-color: rgba(85, 255, 255, 0.15);
       box-shadow: 0 0 15px rgba(85, 255, 255, 0.5);
     }
     .view-mode-btn.active {
-      background-color: rgba(85, 255, 255, 0.2);
-      border-color: #00fcfd;
-      box-shadow: 0 0 20px rgba(85, 255, 255, 0.7);
+      background-color: #55ffff; /* Fond rempli */
+      color: #0e0e0e; /* Texte en contre-forme (noir) */
+      border-color: #55ffff;
+      box-shadow: 0 0 25px rgba(85, 255, 255, 0.8);
+      text-shadow: none; /* Pas de glow sur le texte actif */
     }
     @media (max-width: 768px) {
       #view-mode-container {
@@ -323,7 +325,6 @@
   </div>
   <div id="ui-overlay">
     <button id="resetCamera">se replacer</button>
-    <button id="toggleZoom">zoom</button>
   </div>
   <button id="arrow-left" class="arrow">&lt;</button>
   <button id="arrow-right" class="arrow">&gt;</button>
@@ -800,94 +801,45 @@
       isResetAnimating = true;
       cancelResetAnimation = false;
 
-      if (viewMode === 'scene') {
-        // Mode Scène : repositionner le groupe
-        const startPosition = sceneGroup.position.clone();
-        const startRotation = new THREE.Euler().copy(sceneGroup.rotation);
-        const targetPosition = new THREE.Vector3(0, 0, -25); // Position loin et centré
-        const targetRotation = new THREE.Euler(0, 0, 0); // Rotation neutre
-
-        function animateReset(currentTime) {
-          // Vérifier si l'animation doit être annulée
-          if (cancelResetAnimation) {
-            isResetAnimating = false;
-            cancelResetAnimation = false;
-            return;
-          }
-
-          const elapsed = currentTime - startTime;
-          const linearProgress = Math.min(elapsed / resetDuration, 1);
-          const easedProgress = easeInOutCubic(linearProgress);
-
-          // Interpoler position et rotation du groupe
-          sceneGroup.position.lerpVectors(startPosition, targetPosition, easedProgress);
-          sceneGroup.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easedProgress;
-          sceneGroup.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easedProgress;
-          sceneGroup.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easedProgress;
-
-          if (linearProgress < 1) {
-            requestAnimationFrame(animateReset);
-          } else {
-            isResetAnimating = false;
-          }
-        }
-        requestAnimationFrame(animateReset);
-      } else {
-        // Mode Caméra : repositionner la caméra
-        const startRotation = new THREE.Euler().copy(camera.rotation);
-        const targetRotation = new THREE.Euler(0, 0, 0); // Rotation neutre
-
-        function animateReset(currentTime) {
-          // Vérifier si l'animation doit être annulée
-          if (cancelResetAnimation) {
-            isResetAnimating = false;
-            cancelResetAnimation = false;
-            return;
-          }
-
-          const elapsed = currentTime - startTime;
-          const linearProgress = Math.min(elapsed / resetDuration, 1);
-          const easedProgress = easeInOutCubic(linearProgress);
-
-          // Interpoler rotation de la caméra
-          camera.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easedProgress;
-          camera.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easedProgress;
-          camera.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easedProgress;
-
-          if (linearProgress < 1) {
-            requestAnimationFrame(animateReset);
-          } else {
-            isResetAnimating = false;
-            camera.lookAt(0, 0, -1);
-          }
-        }
-        requestAnimationFrame(animateReset);
-      }
-    });
-
-    document.getElementById('toggleZoom').addEventListener('click', () => {
-      const zoomDuration = 1500;
+      // TOUJOURS repositionner les deux : le groupe ET la caméra
       const startPosition = sceneGroup.position.clone();
-      const targetPosition = isZoomedIn
-        ? new THREE.Vector3(0, 0, minZoom)
-        : new THREE.Vector3(0, 0, maxZoom);
+      const startRotationGroup = new THREE.Euler().copy(sceneGroup.rotation);
+      const startRotationCamera = new THREE.Euler().copy(camera.rotation);
+      const targetPosition = new THREE.Vector3(0, 0, -25); // Position loin et centré
+      const targetRotationGroup = new THREE.Euler(0, 0, 0); // Rotation neutre
+      const targetRotationCamera = new THREE.Euler(0, 0, 0); // Rotation neutre
 
-      const startTime = performance.now();
-      function animateZoom(currentTime) {
+      function animateReset(currentTime) {
+        // Vérifier si l'animation doit être annulée
+        if (cancelResetAnimation) {
+          isResetAnimating = false;
+          cancelResetAnimation = false;
+          return;
+        }
+
         const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / zoomDuration, 1);
-        sceneGroup.position.lerpVectors(startPosition, targetPosition, progress);
+        const linearProgress = Math.min(elapsed / resetDuration, 1);
+        const easedProgress = easeInOutCubic(linearProgress);
 
-        if (progress < 1) {
-          requestAnimationFrame(animateZoom);
+        // Interpoler position et rotation du groupe
+        sceneGroup.position.lerpVectors(startPosition, targetPosition, easedProgress);
+        sceneGroup.rotation.x = startRotationGroup.x + (targetRotationGroup.x - startRotationGroup.x) * easedProgress;
+        sceneGroup.rotation.y = startRotationGroup.y + (targetRotationGroup.y - startRotationGroup.y) * easedProgress;
+        sceneGroup.rotation.z = startRotationGroup.z + (targetRotationGroup.z - startRotationGroup.z) * easedProgress;
+
+        // Interpoler rotation de la caméra
+        camera.rotation.x = startRotationCamera.x + (targetRotationCamera.x - startRotationCamera.x) * easedProgress;
+        camera.rotation.y = startRotationCamera.y + (targetRotationCamera.y - startRotationCamera.y) * easedProgress;
+        camera.rotation.z = startRotationCamera.z + (targetRotationCamera.z - startRotationCamera.z) * easedProgress;
+
+        if (linearProgress < 1) {
+          requestAnimationFrame(animateReset);
         } else {
-          isZoomedIn = !isZoomedIn;
-          // Mettre à jour les niveaux de zoom
-          zoomLevel = isZoomedIn ? 1 : 0;
-          targetZoomLevel = zoomLevel;
+          isResetAnimating = false;
+          camera.lookAt(0, 0, -1);
         }
       }
-      requestAnimationFrame(animateZoom);
+      requestAnimationFrame(animateReset);
     });
 
     // Zoom progressif avec la molette de la souris
@@ -1065,10 +1017,6 @@ window.addEventListener('touchend', (event) => {
 
 
 // Ajouter des interactions tactiles pour les boutons
-document.getElementById('toggleZoom').addEventListener('touchstart', () => {
-  document.getElementById('toggleZoom').click(); // Simuler un clic sur le bouton Zoom
-});
-
 document.getElementById('resetCamera').addEventListener('touchstart', () => {
   document.getElementById('resetCamera').click(); // Simuler un clic sur le bouton Reset
 });
@@ -1122,27 +1070,21 @@ window.addEventListener('DOMContentLoaded', () => {
   const titleContainer = document.getElementById('title-container');
   const startButton = document.getElementById('startButton');
 
-  // Séquence d'animation fluide (accélérée)
-  // Phase 1 (0-200ms): titre commence à disparaître
+  // Séquence d'animation accélérée
+  // Phase 1 (100ms): titre apparaît rapidement
   setTimeout(() => {
-    titleContainer.style.opacity = '0';
-  }, 200);
+    titleContainer.style.opacity = '1';
+  }, 100);
 
-  // Phase 2 (400ms): titre commence à réapparaître
-  setTimeout(() => {
-    titleContainer.style.opacity = '0.5';
-  }, 400);
-
-  // Phase 3 (1200ms): tout devient visible progressivement avec fond allégé
+  // Phase 2 (400ms): fond noir commence à diminuer
   setTimeout(() => {
     introOverlay.style.background = 'rgba(0, 0, 0, 0.1)';
-    titleContainer.style.opacity = '1';
-  }, 1200);
+  }, 400);
 
-  // Phase 4 (2400ms): bouton >> apparaît
+  // Phase 3 (800ms): bouton >> apparaît
   setTimeout(() => {
     startButton.style.opacity = '1';
-  }, 2400);
+  }, 800);
 
   // Rotation automatique du groupe sur la page d'accueil
   autoRotationInterval = setInterval(() => {
