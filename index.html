@@ -449,10 +449,15 @@
         }
 
         const particleGeometry = new THREE.BufferGeometry();
+        const particleMaterial = new THREE.PointsMaterial({
+          size: 0.02,
+          vertexColors: true,
+          transparent: true,
+          opacity: isIntroActive ? 0 : 1 // Commence à 0 sur la page d'accueil
+        });
 
         const particleVertices = [];
         const particleColors = [];
-        const particleOpacities = []; // Pour l'animation d'apparition
 
         for (let y = 0; y < imgHeight; y++) {
           for (let x = 0; x < imgWidth; x++) {
@@ -474,43 +479,12 @@
               const posZ = (Math.random() - 0.5) * 8; // État légèrement dispersé
               particleVertices.push(posX, posY, posZ);
               particleColors.push(r, g, b);
-
-              // Initialiser l'opacité à 0 pour l'animation d'apparition
-              particleOpacities.push(isIntroActive ? 0 : 1);
             }
           }
         }
 
         particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particleVertices, 3));
         particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
-        particleGeometry.setAttribute('alpha', new THREE.Float32BufferAttribute(particleOpacities, 1));
-
-        // Shader personnalisé pour gérer l'opacité par particule
-        const particleMaterial = new THREE.ShaderMaterial({
-          vertexShader: `
-            attribute float alpha;
-            varying vec3 vColor;
-            varying float vAlpha;
-
-            void main() {
-              vColor = color;
-              vAlpha = alpha;
-              vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-              gl_PointSize = 0.02 * (300.0 / -mvPosition.z);
-              gl_Position = projectionMatrix * mvPosition;
-            }
-          `,
-          fragmentShader: `
-            varying vec3 vColor;
-            varying float vAlpha;
-
-            void main() {
-              gl_FragColor = vec4(vColor, vAlpha);
-            }
-          `,
-          vertexColors: true,
-          transparent: true
-        });
 
         if (particles) {
           sceneGroup.remove(particles);
@@ -522,31 +496,21 @@
 
         // Animation d'apparition uniquement sur la page d'accueil
         if (isIntroActive) {
-          const alphaArray = particleGeometry.attributes.alpha.array;
-          const particleCount = alphaArray.length;
+          const startTime = performance.now();
+          const duration = 5000; // 5 secondes au total
 
-          // Animer chaque particule avec un délai aléatoire
-          for (let i = 0; i < particleCount; i++) {
-            const delay = 250 + Math.random() * 4750; // Entre 250ms et 5000ms
-            const duration = 500; // Durée de l'apparition
+          function animateParticleAppearance(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
 
-            setTimeout(() => {
-              const startTime = performance.now();
+            // Progression de 0 à 1 sur 5 secondes
+            particleMaterial.opacity = progress;
 
-              function animateParticle(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-
-                alphaArray[i] = progress;
-                particleGeometry.attributes.alpha.needsUpdate = true;
-
-                if (progress < 1) {
-                  requestAnimationFrame(animateParticle);
-                }
-              }
-              requestAnimationFrame(animateParticle);
-            }, delay);
+            if (progress < 1) {
+              requestAnimationFrame(animateParticleAppearance);
+            }
           }
+          requestAnimationFrame(animateParticleAppearance);
         }
       }, undefined, function (err) {
         console.error(`Une erreur est survenue lors du chargement de l'image ${imageIndex}:`, err);
@@ -978,7 +942,7 @@
       }
 
       // Si on est dans la position de reset, permettre le zoom normal
-      const scrollSpeed = 0.0008; // Ralenti pour plus de contrôle
+      const scrollSpeed = 0.0004; // Encore plus ralenti pour un contrôle optimal
       targetZoomLevel -= event.deltaY * scrollSpeed; // INVERSÉ : scroll up = rapprochement
 
       // Limiter entre 0 et 1
