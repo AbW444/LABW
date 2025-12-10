@@ -30,7 +30,7 @@
     }
     #ui-overlay {
       position: absolute;
-      bottom: 5px;
+      bottom: 15px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -47,9 +47,9 @@
       color: #55ffff;
       border: none;
       outline: none;
-      padding: 12px 25px;
+      padding: 16px 35px;
       margin: 3px;
-      font-size: 20px;
+      font-size: 24px;
       cursor: pointer;
       border-radius: 50px;
       font-family: "comma-sans", sans-serif;
@@ -231,7 +231,7 @@
     }
     #page-title {
       position: absolute;
-      top: 5px;
+      top: 0px;
       left: 50%;
       transform: translateX(-50%);
       color: #55ffff;
@@ -250,7 +250,7 @@
     }
     @media (max-width: 768px) {
       #page-title {
-        top: 5px;
+        top: 0px;
         font-size: clamp(18px, 3.5vw, 32px);
         padding: 10px 20px;
         margin: 0 15px;
@@ -259,8 +259,9 @@
     /* Boutons de mode de vue */
     #view-mode-container {
       position: absolute;
-      bottom: 5px;
-      right: 5px;
+      bottom: 50%;
+      right: 15px;
+      transform: translateY(50%);
       display: none;
       flex-direction: column;
       gap: 10px;
@@ -297,8 +298,9 @@
     }
     @media (max-width: 768px) {
       #view-mode-container {
-        bottom: 5px;
-        right: 5px;
+        bottom: 50%;
+        right: 10px;
+        transform: translateY(50%);
         gap: 8px;
       }
       .view-mode-btn {
