@@ -465,7 +465,11 @@
             let b = imgData.data[i + 2] / 255;
             const a = imgData.data[i + 3] / 255;
 
-            if (a > 0.5) {
+            // Vérifier si le pixel est noir ou très sombre
+            const brightness = (r + g + b) / 3;
+            const isBlackish = brightness < 0.1; // Seuil pour noir/très sombre
+
+            if (a > 0.5 && !isBlackish) {
               // Saturer les couleurs
               const saturated = saturateColor(r, g, b);
               r = saturated.r;
@@ -517,6 +521,19 @@
       }
     }
 
+    // Fonction pour générer une position uniforme sur une sphère
+    function getUniformSpherePoint(radius) {
+      const theta = Math.random() * Math.PI * 2; // Angle horizontal
+      const u = Math.random() * 2 - 1; // Distribution uniforme entre -1 et 1
+      const phi = Math.acos(u); // Angle vertical pour distribution uniforme
+
+      const x = radius * Math.sin(phi) * Math.cos(theta);
+      const y = radius * Math.sin(phi) * Math.sin(theta);
+      const z = radius * Math.cos(phi);
+
+      return { x, y, z };
+    }
+
     // Créer 3 couches d'étoiles avec différentes tailles pour le réalisme
 
     // Couche 1 : Grandes étoiles brillantes (rares)
@@ -524,12 +541,8 @@
     const bigStarsVertices = [];
     const bigStarsColors = [];
     for (let i = 0; i < 150; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos((Math.random() * 2) - 1);
-      const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
-      const y = sphereRadius * Math.sin(phi) * Math.sin(theta);
-      const z = sphereRadius * Math.cos(phi);
-      bigStarsVertices.push(x, y, z);
+      const pos = getUniformSpherePoint(sphereRadius);
+      bigStarsVertices.push(pos.x, pos.y, pos.z);
 
       const color = getRealisticStarColor();
       bigStarsColors.push(color.r, color.g, color.b);
@@ -550,12 +563,8 @@
     const mediumStarsVertices = [];
     const mediumStarsColors = [];
     for (let i = 0; i < 800; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos((Math.random() * 2) - 1);
-      const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
-      const y = sphereRadius * Math.sin(phi) * Math.sin(theta);
-      const z = sphereRadius * Math.cos(phi);
-      mediumStarsVertices.push(x, y, z);
+      const pos = getUniformSpherePoint(sphereRadius);
+      mediumStarsVertices.push(pos.x, pos.y, pos.z);
 
       const color = getRealisticStarColor();
       mediumStarsColors.push(color.r, color.g, color.b);
@@ -576,12 +585,8 @@
     const smallStarsVertices = [];
     const smallStarsColors = [];
     for (let i = 0; i < 2000; i++) {
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.acos((Math.random() * 2) - 1);
-      const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
-      const y = sphereRadius * Math.sin(phi) * Math.sin(theta);
-      const z = sphereRadius * Math.cos(phi);
-      smallStarsVertices.push(x, y, z);
+      const pos = getUniformSpherePoint(sphereRadius);
+      smallStarsVertices.push(pos.x, pos.y, pos.z);
 
       const color = getRealisticStarColor();
       smallStarsColors.push(color.r, color.g, color.b);
@@ -920,8 +925,8 @@
       }
 
       // Si on est dans la position de reset, permettre le zoom normal
-      const scrollSpeed = 0.002;
-      targetZoomLevel += event.deltaY * scrollSpeed;
+      const scrollSpeed = 0.0008; // Ralenti pour plus de contrôle
+      targetZoomLevel -= event.deltaY * scrollSpeed; // INVERSÉ : scroll up = rapprochement
 
       // Limiter entre 0 et 1
       targetZoomLevel = Math.max(0, Math.min(1, targetZoomLevel));
