@@ -30,7 +30,7 @@
     }
     #ui-overlay {
       position: absolute;
-      bottom: 20px; /* Aligné avec les marges standard */
+      bottom: 10px; /* Marge réduite de moitié */
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -75,7 +75,7 @@
     }
     @media (max-width: 768px) {
       #ui-overlay {
-        bottom: 15px;
+        bottom: 8px;
         gap: 12px;
         padding: 10px 12px;
       }
@@ -231,7 +231,7 @@
     }
     #page-title {
       position: absolute;
-      top: 20px; /* Aligné avec la marge du bas */
+      top: 10px; /* Marge réduite de moitié */
       left: 50%;
       transform: translateX(-50%);
       color: #55ffff;
@@ -250,7 +250,7 @@
     }
     @media (max-width: 768px) {
       #page-title {
-        top: 15px;
+        top: 8px;
         font-size: clamp(18px, 3.5vw, 32px);
         padding: 10px 20px;
         margin: 0 15px;
@@ -259,8 +259,8 @@
     /* Boutons de mode de vue */
     #view-mode-container {
       position: absolute;
-      bottom: 20px;
-      right: 20px;
+      bottom: 10px; /* Marge réduite de moitié */
+      right: 10px; /* Marge réduite de moitié */
       display: none;
       flex-direction: column;
       gap: 10px;
@@ -280,15 +280,13 @@
       justify-content: center;
       font-size: 24px;
       color: #55ffff;
-      transition: all 0.3s ease;
+      transition: transform 0.3s ease; /* Seulement transform */
       text-shadow:
         0 0 8px rgba(85, 255, 255, 0.6),
         0 0 16px rgba(85, 255, 255, 0.4);
     }
     .view-mode-btn:hover {
-      transform: scale(1.1);
-      background-color: rgba(85, 255, 255, 0.15);
-      box-shadow: 0 0 15px rgba(85, 255, 255, 0.5);
+      transform: scale(1.1); /* Uniquement grossissement */
     }
     .view-mode-btn.active {
       background-color: #55ffff; /* Fond rempli */
@@ -299,8 +297,8 @@
     }
     @media (max-width: 768px) {
       #view-mode-container {
-        bottom: 15px;
-        right: 15px;
+        bottom: 8px;
+        right: 8px;
         gap: 8px;
       }
       .view-mode-btn {
@@ -324,7 +322,7 @@
     <button id="startButton">&gt;&gt;</button>
   </div>
   <div id="ui-overlay">
-    <button id="resetCamera">se replacer</button>
+    <button id="resetCamera">replace</button>
   </div>
   <button id="arrow-left" class="arrow">&lt;</button>
   <button id="arrow-right" class="arrow">&gt;</button>
@@ -842,13 +840,80 @@
       requestAnimationFrame(animateReset);
     });
 
+    // Fonction pour vérifier si on est dans la position de reset
+    function isInResetPosition() {
+      const positionThreshold = 0.5;
+      const rotationThreshold = 0.05;
+
+      const isPositionReset =
+        Math.abs(sceneGroup.position.x) < positionThreshold &&
+        Math.abs(sceneGroup.position.y) < positionThreshold &&
+        Math.abs(sceneGroup.position.z - (-25)) < positionThreshold;
+
+      const isRotationReset =
+        Math.abs(sceneGroup.rotation.x) < rotationThreshold &&
+        Math.abs(sceneGroup.rotation.y) < rotationThreshold &&
+        Math.abs(sceneGroup.rotation.z) < rotationThreshold &&
+        Math.abs(camera.rotation.x) < rotationThreshold &&
+        Math.abs(camera.rotation.y) < rotationThreshold &&
+        Math.abs(camera.rotation.z) < rotationThreshold;
+
+      return isPositionReset && isRotationReset;
+    }
+
     // Zoom progressif avec la molette de la souris
     window.addEventListener('wheel', (event) => {
       if (isIntroActive) return; // Pas de zoom sur la page d'accueil
 
       event.preventDefault();
 
-      // Ajuster le niveau de zoom cible basé sur la direction du scroll
+      // Si on n'est pas dans la position de reset, repositionner d'abord
+      if (!isInResetPosition() && !isResetAnimating) {
+        // Déclencher l'animation de repositionnement
+        const resetDuration = 1500;
+        const startTime = performance.now();
+        const startPosition = sceneGroup.position.clone();
+        const startRotationGroup = new THREE.Euler().copy(sceneGroup.rotation);
+        const startRotationCamera = new THREE.Euler().copy(camera.rotation);
+        const targetPosition = new THREE.Vector3(0, 0, -25);
+        const targetRotationGroup = new THREE.Euler(0, 0, 0);
+        const targetRotationCamera = new THREE.Euler(0, 0, 0);
+
+        isResetAnimating = true;
+        cancelResetAnimation = false;
+
+        function animateScrollReset(currentTime) {
+          if (cancelResetAnimation) {
+            isResetAnimating = false;
+            cancelResetAnimation = false;
+            return;
+          }
+
+          const elapsed = currentTime - startTime;
+          const linearProgress = Math.min(elapsed / resetDuration, 1);
+          const easedProgress = easeInOutCubic(linearProgress);
+
+          sceneGroup.position.lerpVectors(startPosition, targetPosition, easedProgress);
+          sceneGroup.rotation.x = startRotationGroup.x + (targetRotationGroup.x - startRotationGroup.x) * easedProgress;
+          sceneGroup.rotation.y = startRotationGroup.y + (targetRotationGroup.y - startRotationGroup.y) * easedProgress;
+          sceneGroup.rotation.z = startRotationGroup.z + (targetRotationGroup.z - startRotationGroup.z) * easedProgress;
+
+          camera.rotation.x = startRotationCamera.x + (targetRotationCamera.x - startRotationCamera.x) * easedProgress;
+          camera.rotation.y = startRotationCamera.y + (targetRotationCamera.y - startRotationCamera.y) * easedProgress;
+          camera.rotation.z = startRotationCamera.z + (targetRotationCamera.z - startRotationCamera.z) * easedProgress;
+
+          if (linearProgress < 1) {
+            requestAnimationFrame(animateScrollReset);
+          } else {
+            isResetAnimating = false;
+            camera.lookAt(0, 0, -1);
+          }
+        }
+        requestAnimationFrame(animateScrollReset);
+        return; // Ne pas zoomer pendant le repositionnement
+      }
+
+      // Si on est dans la position de reset, permettre le zoom normal
       const scrollSpeed = 0.002;
       targetZoomLevel += event.deltaY * scrollSpeed;
 
@@ -897,15 +962,35 @@
       }
     });
 
-    // Gestion des boutons de mode de vue
+    // Gestion des boutons de mode de vue avec animation
     modeSceneBtn.addEventListener('click', () => {
       if (viewMode !== 'scene') {
         viewMode = 'scene';
         modeSceneBtn.classList.add('active');
         modeCameraBtn.classList.remove('active');
-        // Réinitialiser la rotation de la caméra
-        camera.rotation.set(0, 0, 0);
-        camera.lookAt(0, 0, -1);
+
+        // Animer le retour de la caméra à la position initiale
+        const transitionDuration = 1000;
+        const startTime = performance.now();
+        const startRotation = new THREE.Euler().copy(camera.rotation);
+        const targetRotation = new THREE.Euler(0, 0, 0);
+
+        function animateCameraReset(currentTime) {
+          const elapsed = currentTime - startTime;
+          const linearProgress = Math.min(elapsed / transitionDuration, 1);
+          const easedProgress = easeInOutCubic(linearProgress);
+
+          camera.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easedProgress;
+          camera.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easedProgress;
+          camera.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easedProgress;
+
+          if (linearProgress < 1) {
+            requestAnimationFrame(animateCameraReset);
+          } else {
+            camera.lookAt(0, 0, -1);
+          }
+        }
+        requestAnimationFrame(animateCameraReset);
       }
     });
 
@@ -914,10 +999,35 @@
         viewMode = 'camera';
         modeCameraBtn.classList.add('active');
         modeSceneBtn.classList.remove('active');
-        // Optionnel : réinitialiser la caméra
-        camera.position.set(0, 0, 0);
-        camera.rotation.set(0, 0, 0);
-        camera.lookAt(0, 0, -1);
+
+        // Animer le retour du groupe à la position initiale
+        const transitionDuration = 1000;
+        const startTime = performance.now();
+        const startPosition = sceneGroup.position.clone();
+        const startRotation = new THREE.Euler().copy(sceneGroup.rotation);
+        const targetPosition = new THREE.Vector3(0, 0, -25);
+        const targetRotation = new THREE.Euler(0, 0, 0);
+
+        function animateGroupReset(currentTime) {
+          const elapsed = currentTime - startTime;
+          const linearProgress = Math.min(elapsed / transitionDuration, 1);
+          const easedProgress = easeInOutCubic(linearProgress);
+
+          sceneGroup.position.lerpVectors(startPosition, targetPosition, easedProgress);
+          sceneGroup.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easedProgress;
+          sceneGroup.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easedProgress;
+          sceneGroup.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easedProgress;
+
+          if (linearProgress < 1) {
+            requestAnimationFrame(animateGroupReset);
+          } else {
+            // S'assurer que la caméra est aussi réinitialisée
+            camera.position.set(0, 0, 0);
+            camera.rotation.set(0, 0, 0);
+            camera.lookAt(0, 0, -1);
+          }
+        }
+        requestAnimationFrame(animateGroupReset);
       }
     });
 
