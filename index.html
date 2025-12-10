@@ -53,7 +53,7 @@
       cursor: pointer;
       border-radius: 50px;
       font-family: "comma-sans", sans-serif;
-      font-weight: 400;
+      font-weight: 700; /* Graisse augmentée */
       font-style: normal;
       text-transform: uppercase;
       opacity: 1;
@@ -841,14 +841,15 @@
     });
 
     // Fonction pour vérifier si on est dans la position de reset
+    // On ne vérifie PAS position.z car elle change avec le zoom
     function isInResetPosition() {
       const positionThreshold = 0.5;
       const rotationThreshold = 0.05;
 
+      // Vérifier uniquement X et Y, pas Z (car Z change avec le zoom)
       const isPositionReset =
         Math.abs(sceneGroup.position.x) < positionThreshold &&
-        Math.abs(sceneGroup.position.y) < positionThreshold &&
-        Math.abs(sceneGroup.position.z - (-25)) < positionThreshold;
+        Math.abs(sceneGroup.position.y) < positionThreshold;
 
       const isRotationReset =
         Math.abs(sceneGroup.rotation.x) < rotationThreshold &&
@@ -872,10 +873,11 @@
         // Déclencher l'animation de repositionnement
         const resetDuration = 1500;
         const startTime = performance.now();
-        const startPosition = sceneGroup.position.clone();
+        const startPositionX = sceneGroup.position.x;
+        const startPositionY = sceneGroup.position.y;
+        const currentZ = sceneGroup.position.z; // Garder le Z actuel (zoom)
         const startRotationGroup = new THREE.Euler().copy(sceneGroup.rotation);
         const startRotationCamera = new THREE.Euler().copy(camera.rotation);
-        const targetPosition = new THREE.Vector3(0, 0, -25);
         const targetRotationGroup = new THREE.Euler(0, 0, 0);
         const targetRotationCamera = new THREE.Euler(0, 0, 0);
 
@@ -893,7 +895,11 @@
           const linearProgress = Math.min(elapsed / resetDuration, 1);
           const easedProgress = easeInOutCubic(linearProgress);
 
-          sceneGroup.position.lerpVectors(startPosition, targetPosition, easedProgress);
+          // Repositionner uniquement X et Y, pas Z
+          sceneGroup.position.x = startPositionX + (0 - startPositionX) * easedProgress;
+          sceneGroup.position.y = startPositionY + (0 - startPositionY) * easedProgress;
+          // sceneGroup.position.z reste contrôlé par le zoom dans la boucle animate()
+
           sceneGroup.rotation.x = startRotationGroup.x + (targetRotationGroup.x - startRotationGroup.x) * easedProgress;
           sceneGroup.rotation.y = startRotationGroup.y + (targetRotationGroup.y - startRotationGroup.y) * easedProgress;
           sceneGroup.rotation.z = startRotationGroup.z + (targetRotationGroup.z - startRotationGroup.z) * easedProgress;
