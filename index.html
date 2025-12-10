@@ -3,99 +3,1045 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Particle Environment with Snake</title>
+  <title>AURORA UNREALIS</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='10' y='10' width='80' height='80' fill='%2300fcfd' rx='5'/></svg>">
   <style>
+    * { cursor: none !important; }
     body { margin: 0; overflow: hidden; font-family: 'Roboto', Arial, sans-serif; background-color: #0e0e0e; }
     canvas { display: block; }
+
+    /* Curseur personnalisé - blanc solide avec effet chromatique subtil */
+    #custom-cursor {
+      position: fixed;
+      width: 16px;
+      height: 16px;
+      background-color: white;
+      pointer-events: none;
+      z-index: 99999;
+      box-shadow:
+        0 0 4px 1px rgba(85, 255, 255, 0.5),
+        0 0 8px 2px rgba(85, 255, 255, 0.3),
+        0 0 12px 3px rgba(106, 13, 173, 0.15);
+      left: 0;
+      top: 0;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.5s ease-in-out;
+      mix-blend-mode: screen;
+    }
+    #ui-overlay {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: row;
+      gap: 15px;
+      padding: 12px 15px;
+      border-radius: 10px;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    #ui-overlay button {
+      background-color: transparent;
+      color: #55ffff;
+      border: none;
+      outline: none;
+      padding: 12px 25px;
+      margin: 3px;
+      font-size: 20px;
+      cursor: pointer;
+      border-radius: 50px;
+      font-family: "comma-sans", sans-serif;
+      font-weight: 400;
+      font-style: normal;
+      text-transform: uppercase;
+      opacity: 1;
+      transition: text-shadow 0.3s, transform 0.3s;
+      text-shadow:
+        0 0 8px rgba(85, 255, 255, 0.9),
+        0 0 16px rgba(85, 255, 255, 0.6),
+        0 0 24px rgba(106, 13, 173, 0.4);
+    }
+    #resetCamera:hover, #toggleZoom:hover {
+      transform: scale(1.15);
+      text-shadow:
+        0 0 20px rgba(85, 255, 255, 0.8),
+        0 0 40px rgba(85, 255, 255, 0.6),
+        0 0 60px rgba(85, 255, 255, 0.4);
+    }
+    #ui-overlay button:focus {
+      outline: none;
+    }
+    @media (max-width: 768px) {
+      #ui-overlay {
+        bottom: 10px;
+        gap: 12px;
+        padding: 10px 12px;
+      }
+      #ui-overlay button {
+        padding: 10px 20px;
+        margin: 2px;
+        font-size: 18px;
+      }
+    }
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: transparent;
+      color: #55ffff;
+      border: none;
+      cursor: pointer;
+      font-size: 60px;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      opacity: 1;
+      transition: text-shadow 0.3s, transform 0.3s, opacity 0.5s ease-in-out;
+      display: none;
+      padding: 20px;
+      border-radius: 50%;
+      text-shadow:
+        0 0 8px rgba(85, 255, 255, 0.9),
+        0 0 16px rgba(85, 255, 255, 0.6),
+        0 0 24px rgba(106, 13, 173, 0.4);
+    }
+    .arrow:hover {
+      transform: translateY(-50%) scale(1.15);
+      text-shadow:
+        0 0 20px rgba(85, 255, 255, 0.8),
+        0 0 40px rgba(85, 255, 255, 0.6),
+        0 0 60px rgba(85, 255, 255, 0.4);
+    }
+    #arrow-left { left: clamp(20px, 8vw, 80px); }
+    #arrow-right { right: clamp(20px, 8vw, 80px); }
+    #intro-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(0.5px);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      flex-direction: column;
+      color: #55ffff;
+      font-size: clamp(30px, 10vw, 216px);
+      font-family: "new-astro", sans-serif;
+      font-weight: 700;
+      font-style: normal;
+      z-index: 20;
+      padding: 30px clamp(15px, 4vw, 60px);
+      box-sizing: border-box;
+      overflow: visible;
+      transition: background 2s ease-out, opacity 1.0s ease-out;
+    }
+    @media (max-width: 768px) {
+      #intro-overlay {
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(25px, 8vw, 150px);
+        padding: 20px 15px;
+      }
+    }
+    @media (max-aspect-ratio: 1/1) {
+      #intro-overlay {
+        align-items: center;
+        justify-content: center;
+        font-size: clamp(22px, 8vw, 120px);
+        padding: 20px 12px;
+      }
+    }
+    #title-container {
+      text-align: left;
+      line-height: 0.9;
+      opacity: 0;
+      transition: opacity 2s ease-out;
+      max-width: 100%;
+      width: fit-content;
+      padding: 5px 10px;
+      margin: 10px 0;
+    }
+    #title-container div {
+      overflow-wrap: break-word;
+      word-break: keep-all;
+      margin: 2px 0;
+    }
+    @media (max-width: 768px) {
+      #title-container {
+        text-align: center;
+        width: 100%;
+        padding: 5px 15px;
+        margin: 10px 0;
+      }
+    }
+    @media (max-aspect-ratio: 1/1) {
+      #title-container {
+        text-align: center;
+        width: 100%;
+        padding: 5px 12px;
+        margin: 8px 0;
+      }
+    }
+    #startButton {
+      position: absolute;
+      top: 50%;
+      left: 68%;
+      transform: translate(-50%, -50%);
+      background-color: transparent;
+      color: #55ffff;
+      border: none;
+      padding: 0;
+      font-size: clamp(80px, 18vw, 280px);
+      cursor: pointer;
+      font-weight: 900;
+      opacity: 0;
+      border-radius: 50%;
+      transition: text-shadow 0.3s, transform 0.3s, opacity 3.5s ease-out;
+      text-shadow:
+        0 0 8px rgba(85, 255, 255, 0.9),
+        0 0 16px rgba(85, 255, 255, 0.6),
+        0 0 24px rgba(106, 13, 173, 0.4);
+    }
+    @media (max-width: 768px) {
+      #startButton {
+        left: 50%;
+        top: 70%;
+        font-size: clamp(60px, 15vw, 160px);
+      }
+    }
+    @media (max-aspect-ratio: 1/1) {
+      #startButton {
+        left: 50%;
+        top: 68%;
+        font-size: clamp(50px, 12vw, 130px);
+      }
+    }
+    #startButton:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+      text-shadow:
+        0 0 20px rgba(85, 255, 255, 0.8),
+        0 0 40px rgba(85, 255, 255, 0.6),
+        0 0 60px rgba(85, 255, 255, 0.4);
+    }
+    #page-title {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #55ffff;
+      font-size: clamp(22px, 4vw, 38px);
+      font-family: "new-astro", sans-serif;
+      font-weight: 700;
+      font-style: normal;
+      z-index: 15;
+      display: none;
+      cursor: pointer;
+      padding: 12px 25px;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      margin: 0 20px;
+    }
+    @media (max-width: 768px) {
+      #page-title {
+        top: 10px;
+        font-size: clamp(18px, 3.5vw, 32px);
+        padding: 10px 20px;
+        margin: 0 15px;
+      }
+    }
   </style>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link rel="stylesheet" href="https://use.typekit.net/rdj2icn.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <div id="custom-cursor"></div>
+  <div id="page-title" onclick="location.reload();">AURORA UNREALIS</div>
+  <div id="intro-overlay">
+    <div id="title-container">
+      <div>AURORA</div>
+      <div>UNREALIS</div>
+    </div>
+    <button id="startButton">&gt;&gt;</button>
+  </div>
+  <div id="ui-overlay">
+    <button id="resetCamera">se replacer</button>
+    <button id="toggleZoom">zoom</button>
+  </div>
+  <button id="arrow-left" class="arrow">&lt;</button>
+  <button id="arrow-right" class="arrow">&gt;</button>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
+    // Curseur et boutons avec disparition après inactivité
+    const customCursor = document.getElementById('custom-cursor');
+    const uiOverlay = document.getElementById('ui-overlay');
+    const pageTitle = document.getElementById('page-title');
+    const arrowLeft = document.getElementById('arrow-left');
+    const arrowRight = document.getElementById('arrow-right');
+    let fadeTimer;
+    let buttonsAreVisible = false; // Flag pour savoir si les boutons sont affichés
+
+    function fadeUIOut() {
+      customCursor.style.opacity = '0';
+      if (buttonsAreVisible) {
+        uiOverlay.style.opacity = '0';
+        arrowLeft.style.opacity = '0';
+        arrowRight.style.opacity = '0';
+      }
+      // pageTitle ne disparaît jamais
+    }
+
+    function fadeUIIn() {
+      customCursor.style.opacity = '1';
+      // Ne faire apparaître les boutons que s'ils sont affichés ET le flag est activé
+      if (buttonsAreVisible) {
+        uiOverlay.style.opacity = '1';
+        arrowLeft.style.opacity = '1';
+        arrowRight.style.opacity = '1';
+      }
+      clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(fadeUIOut, 3000); // Disparaît après 3 secondes
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      customCursor.style.left = e.clientX + 'px';
+      customCursor.style.top = e.clientY + 'px';
+      fadeUIIn(); // Réapparaît au mouvement
+    });
+
+    document.addEventListener('mousedown', fadeUIIn);
+    document.addEventListener('mouseup', fadeUIIn);
+    document.addEventListener('click', fadeUIIn);
+
+    // Démarrer le timer initial
+    fadeUIIn();
+
+    // Initialisation de la scène, caméra et rendu
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    const gridSize = 20;
-    const particleSize = 0.05;
-    let snake = [{ x: 10, y: 10 }];
-    let direction = { x: 1, y: 0 };
-    let food = { x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize) };
     let particles;
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let isZoomedIn = false;
+    let currentImageIndex = 0;
+    const maxImageIndex = 7;
+    let referenceHeight = null; // Hauteur de référence basée sur l'image 4
+    let isResetAnimating = false; // Flag pour l'animation de replacement
+    let cancelResetAnimation = false; // Flag pour annuler l'animation
+    let isIntroActive = true; // Flag pour savoir si on est sur la page d'accueil
+    let autoRotationInterval = null; // Intervalle pour la rotation automatique
 
-    function createParticleGrid() {
-      const particleGeometry = new THREE.BufferGeometry();
-      const particleMaterial = new THREE.PointsMaterial({ size: particleSize, vertexColors: true });
-      const positions = [];
-      const colors = [];
+    // Variables pour le zoom progressif (DOIVENT être déclarées avant animate())
+    let zoomLevel = 0;
+    let targetZoomLevel = 0;
+    const minZoom = 25; // Position loin
+    const maxZoom = 2;  // Position proche
 
-      for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-          positions.push((x - gridSize / 2) * particleSize, (y - gridSize / 2) * particleSize, 0);
-          colors.push(0, 0, 0);
-        }
-      }
-      
-      particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      
-      particles = new THREE.Points(particleGeometry, particleMaterial);
-      scene.add(particles);
+    const textureLoader = new THREE.TextureLoader();
+
+    // Saturation des couleurs
+    function saturateColor(r, g, b, intensity = 2.0) {
+      const avg = (r + g + b) / 3;
+      r = avg + (r - avg) * intensity;
+      g = avg + (g - avg) * intensity;
+      b = avg + (b - avg) * intensity;
+      return { r: Math.min(r, 1), g: Math.min(g, 1), b: Math.min(b, 1) };
     }
 
-    function updateSnake() {
-      let head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
-      if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize || snake.some(segment => segment.x === head.x && segment.y === head.y)) {
-        resetGame();
+    function loadImage(imageIndex) {
+      const imagePath = `./Projet_test_HLS_LMPI/Ressources/test%20${String(imageIndex).padStart(3, '0')}.jpg`;
+
+      textureLoader.load(imagePath, function (texture) {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        const imgWidth = texture.image.width;
+        const imgHeight = texture.image.height;
+        canvas.width = imgWidth;
+        canvas.height = imgHeight;
+        context.drawImage(texture.image, 0, 0, imgWidth, imgHeight);
+        const imgData = context.getImageData(0, 0, imgWidth, imgHeight);
+
+        // Définir la hauteur de référence avec l'image 4
+        if (imageIndex === 4 && referenceHeight === null) {
+          referenceHeight = imgHeight;
+        }
+
+        // Calculer le facteur d'échelle pour que toutes les images aient la même hauteur que l'image 4
+        let scaleFactor = 50; // Valeur par défaut
+        if (referenceHeight !== null) {
+          scaleFactor = (50 * (imgHeight / referenceHeight)) / 1.15; // Agrandir légèrement la hauteur
+        }
+
+        const particleGeometry = new THREE.BufferGeometry();
+        const particleMaterial = new THREE.PointsMaterial({
+          size: 0.02,
+          vertexColors: true,
+        });
+
+        const particleVertices = [];
+        const particleColors = [];
+
+        for (let y = 0; y < imgHeight; y++) {
+          for (let x = 0; x < imgWidth; x++) {
+            const i = (y * imgWidth + x) * 4;
+            let r = imgData.data[i] / 255;
+            let g = imgData.data[i + 1] / 255;
+            let b = imgData.data[i + 2] / 255;
+            const a = imgData.data[i + 3] / 255;
+
+            if (a > 0.5) {
+              // Saturer les couleurs
+              const saturated = saturateColor(r, g, b);
+              r = saturated.r;
+              g = saturated.g;
+              b = saturated.b;
+
+              const posX = (x - imgWidth / 2) / scaleFactor;
+              const posY = (y - imgHeight / 2) / scaleFactor;
+              const posZ = (Math.random() - 0.5) * 8; // État légèrement dispersé
+              particleVertices.push(posX, posY, posZ);
+              particleColors.push(r, g, b);
+            }
+          }
+        }
+
+        particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particleVertices, 3));
+        particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
+
+        if (particles) {
+          scene.remove(particles);
+        }
+
+        particles = new THREE.Points(particleGeometry, particleMaterial);
+        particles.rotation.x = Math.PI; // Corriger l'orientation de l'image
+        scene.add(particles);
+      }, undefined, function (err) {
+        console.error(`Une erreur est survenue lors du chargement de l'image ${imageIndex}:`, err);
+      });
+    }
+
+    // Ajouter des étoiles réalistes avec variations de couleur, taille et luminosité
+    const sphereRadius = 400;
+
+    // Fonction pour générer une couleur d'étoile réaliste
+    function getRealisticStarColor() {
+      const rand = Math.random();
+      if (rand < 0.5) {
+        // 50% - Étoiles blanches éclatantes
+        return new THREE.Color(1, 1, 1);
+      } else if (rand < 0.7) {
+        // 20% - Étoiles bleu-blanc (très chaudes) - PLUS PRONONCÉ
+        return new THREE.Color(0.7, 0.85, 1);
+      } else if (rand < 0.85) {
+        // 15% - Étoiles jaune chaud - PLUS PRONONCÉ
+        return new THREE.Color(1, 0.95, 0.7);
+      } else {
+        // 15% - Étoiles orangées/rougeâtres (plus froides) - PLUS PRONONCÉ
+        return new THREE.Color(1, 0.7, 0.5);
+      }
+    }
+
+    // Créer 3 couches d'étoiles avec différentes tailles pour le réalisme
+
+    // Couche 1 : Grandes étoiles brillantes (rares)
+    const bigStarsGeometry = new THREE.BufferGeometry();
+    const bigStarsVertices = [];
+    const bigStarsColors = [];
+    for (let i = 0; i < 150; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
+      const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
+      const y = sphereRadius * Math.sin(phi) * Math.sin(theta);
+      const z = sphereRadius * Math.cos(phi);
+      bigStarsVertices.push(x, y, z);
+
+      const color = getRealisticStarColor();
+      bigStarsColors.push(color.r, color.g, color.b);
+    }
+    bigStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(bigStarsVertices, 3));
+    bigStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(bigStarsColors, 3));
+    const bigStarsMaterial = new THREE.PointsMaterial({
+      size: 0.07, // ENCORE PLUS GROSSES - très brillantes
+      vertexColors: true,
+      transparent: true,
+      opacity: 1.0, // PLEINE LUMINOSITÉ
+    });
+    const bigStars = new THREE.Points(bigStarsGeometry, bigStarsMaterial);
+    scene.add(bigStars);
+
+    // Couche 2 : Étoiles moyennes (plus nombreuses)
+    const mediumStarsGeometry = new THREE.BufferGeometry();
+    const mediumStarsVertices = [];
+    const mediumStarsColors = [];
+    for (let i = 0; i < 800; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
+      const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
+      const y = sphereRadius * Math.sin(phi) * Math.sin(theta);
+      const z = sphereRadius * Math.cos(phi);
+      mediumStarsVertices.push(x, y, z);
+
+      const color = getRealisticStarColor();
+      mediumStarsColors.push(color.r, color.g, color.b);
+    }
+    mediumStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(mediumStarsVertices, 3));
+    mediumStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(mediumStarsColors, 3));
+    const mediumStarsMaterial = new THREE.PointsMaterial({
+      size: 0.020, // Taille moyenne visible
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.7, // Luminosité moyenne
+    });
+    const mediumStars = new THREE.Points(mediumStarsGeometry, mediumStarsMaterial);
+    scene.add(mediumStars);
+
+    // Couche 3 : Petites étoiles lointaines (très nombreuses, discrètes)
+    const smallStarsGeometry = new THREE.BufferGeometry();
+    const smallStarsVertices = [];
+    const smallStarsColors = [];
+    for (let i = 0; i < 2000; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
+      const x = sphereRadius * Math.sin(phi) * Math.cos(theta);
+      const y = sphereRadius * Math.sin(phi) * Math.sin(theta);
+      const z = sphereRadius * Math.cos(phi);
+      smallStarsVertices.push(x, y, z);
+
+      const color = getRealisticStarColor();
+      smallStarsColors.push(color.r, color.g, color.b);
+    }
+    smallStarsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(smallStarsVertices, 3));
+    smallStarsGeometry.setAttribute('color', new THREE.Float32BufferAttribute(smallStarsColors, 3));
+    const smallStarsMaterial = new THREE.PointsMaterial({
+      size: 0.008, // Plus petites
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.25, // BEAUCOUP plus discrètes - contraste fort
+    });
+    const smallStars = new THREE.Points(smallStarsGeometry, smallStarsMaterial);
+    scene.add(smallStars);
+
+    // Référence pour l'animation (on garde la référence de la couche moyenne pour la rotation)
+    const stars = mediumStars;
+
+
+    // Ajouter des étoiles filantes
+    const shootingStars = [];
+    const MAX_SHOOTING_STARS = 3;
+    const MIN_DISTANCE = 100; // Distance minimale entre étoiles filantes
+
+    function createShootingStar() {
+      // Limiter à 3 étoiles filantes maximum
+      if (shootingStars.length >= MAX_SHOOTING_STARS) {
         return;
       }
-      snake.unshift(head);
-      if (head.x === food.x && head.y === food.y) {
-        food = { x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize) };
-      } else {
-        snake.pop();
+
+      const startX = (Math.random() - 0.5) * 400;
+      const startY = (Math.random() - 0.5) * 400;
+      const startZ = -300;
+      const newPos = new THREE.Vector3(startX, startY, startZ);
+
+      // Vérifier la distance avec les étoiles existantes
+      for (let i = 0; i < shootingStars.length; i++) {
+        const existingPos = shootingStars[i].userData.startPos;
+        const distance = newPos.distanceTo(existingPos);
+        if (distance < MIN_DISTANCE) {
+          return; // Trop proche, ne pas créer
+        }
       }
-    }
 
-    function resetGame() {
-      snake = [{ x: 10, y: 10 }];
-      direction = { x: 1, y: 0 };
-      food = { x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize) };
-    }
-
-    function updateParticles() {
-      const colors = particles.geometry.attributes.color.array;
-      colors.fill(0);
-      
-      snake.forEach(segment => {
-        let index = (segment.y * gridSize + segment.x) * 3;
-        colors[index] = 0; colors[index + 1] = 1; colors[index + 2] = 0;
+      const geometry = new THREE.BufferGeometry();
+      const material = new THREE.LineBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.8
       });
-      let foodIndex = (food.y * gridSize + food.x) * 3;
-      colors[foodIndex] = 1; colors[foodIndex + 1] = 0; colors[foodIndex + 2] = 0;
-      
-      particles.geometry.attributes.color.needsUpdate = true;
+
+      const velocity = new THREE.Vector3(
+        (Math.random() - 0.5) * 2,
+        -Math.random() * 2 - 1,
+        Math.random() * 3 + 2
+      );
+
+      // Créer la traînée dans la direction du mouvement
+      const positions = new Float32Array([
+        startX, startY, startZ,
+        startX - velocity.x * 3, startY - velocity.y * 3, startZ - velocity.z * 3
+      ]);
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.attributes.position.setUsage(THREE.DynamicDrawUsage);
+      const shootingStar = new THREE.Line(geometry, material);
+      shootingStar.userData = {
+        velocity: velocity,
+        life: 100,
+        startPos: newPos
+      };
+      scene.add(shootingStar);
+      shootingStars.push(shootingStar);
     }
 
+    // Créer des étoiles filantes aléatoirement
+    setInterval(() => {
+      if (Math.random() < 0.3) {
+        createShootingStar();
+      }
+    }, 2000);
+
+    // Ajouter la Lune à la scène
+    const moonGeometry = new THREE.SphereGeometry(5, 32, 32);
+    const moonMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xaaaaaa });
+    const moon = new THREE.Mesh(moonGeometry, moonMaterial);
+    moon.position.set(50, 100, -200);
+    scene.add(moon);
+
+    // Ajouter la lumière directionnelle pour la Lune
+    const moonLight = new THREE.PointLight(0xffffff, 1, 500);
+    moonLight.position.set(50, 100, -200);
+    scene.add(moonLight);
+
+    // Ajouter une lumière ambiante fixe
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    // Ajouter la neige à la scène
+    const snowGeometry = new THREE.BufferGeometry();
+    const snowMaterial = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 0.02,
+      transparent: true,
+      opacity: 0.8,
+    });
+
+    const snowVertices = [];
+    for (let i = 0; i < 2000; i++) {
+      const x = (Math.random() - 0.5) * 200;
+      const y = Math.random() * 200;
+      const z = (Math.random() - 0.5) * 200;
+      snowVertices.push(x, y, z);
+    }
+
+    snowGeometry.setAttribute('position', new THREE.Float32BufferAttribute(snowVertices, 3));
+    const snow = new THREE.Points(snowGeometry, snowMaterial);
+    scene.add(snow);
+
+    // Précharger l'image 4 pour définir la hauteur de référence
+    const referencePath = `./Projet_test_HLS_LMPI/Ressources/test%20004.jpg`;
+    textureLoader.load(referencePath, function (texture) {
+      referenceHeight = texture.image.height;
+      // Charger l'image initiale après avoir défini la référence
+      loadImage(currentImageIndex);
+    }, undefined, function (err) {
+      console.error('Erreur lors du préchargement de l\'image de référence:', err);
+      // Charger quand même l'image initiale
+      loadImage(currentImageIndex);
+    });
+
+    // Navigation avec les flèches
+    document.getElementById('arrow-left').addEventListener('click', () => {
+      currentImageIndex = currentImageIndex === 0 ? maxImageIndex : currentImageIndex - 1;
+      loadImage(currentImageIndex);
+    });
+
+    document.getElementById('arrow-right').addEventListener('click', () => {
+      currentImageIndex = currentImageIndex === maxImageIndex ? 0 : currentImageIndex + 1;
+      loadImage(currentImageIndex);
+    });
+
+    // Position initiale de la caméra
+    camera.position.set(0, 0, 2);
+    camera.lookAt(0, 0, 0);
+
+    // Animation
     function animate() {
       requestAnimationFrame(animate);
-      updateSnake();
-      updateParticles();
+
+      // Faire tourner la sphère d'étoiles autour de nous
+      stars.rotation.y += 0.0002;
+      stars.rotation.x += 0.0001;
+
+      // Animer les étoiles filantes
+      for (let i = shootingStars.length - 1; i >= 0; i--) {
+        const star = shootingStars[i];
+        star.userData.startPos.add(star.userData.velocity);
+        star.userData.life--;
+        star.material.opacity = star.userData.life / 100;
+
+        // Mettre à jour la traînée pour qu'elle suive le mouvement
+        const positions = star.geometry.attributes.position.array;
+        const vel = star.userData.velocity;
+        const pos = star.userData.startPos;
+        positions[0] = pos.x;
+        positions[1] = pos.y;
+        positions[2] = pos.z;
+        positions[3] = pos.x - vel.x * 3;
+        positions[4] = pos.y - vel.y * 3;
+        positions[5] = pos.z - vel.z * 3;
+        star.geometry.attributes.position.needsUpdate = true;
+
+        if (star.userData.life <= 0) {
+          scene.remove(star);
+          shootingStars.splice(i, 1);
+        }
+      }
+
+      // Zoom fluide progressif (interpolation vers la cible)
+      if (Math.abs(targetZoomLevel - zoomLevel) > 0.001) {
+        // Lerp fluide vers la position cible
+        zoomLevel += (targetZoomLevel - zoomLevel) * 0.1;
+        // Calculer la position Z interpolée
+        camera.position.z = minZoom + (maxZoom - minZoom) * zoomLevel;
+        camera.lookAt(0, 0, 0);
+      }
+
       renderer.render(scene, camera);
     }
-
-    createParticleGrid();
-    camera.position.z = 2;
     animate();
 
-    document.addEventListener('keydown', event => {
-      if (event.key === 'ArrowUp' && direction.y === 0) direction = { x: 0, y: 1 };
-      if (event.key === 'ArrowDown' && direction.y === 0) direction = { x: 0, y: -1 };
-      if (event.key === 'ArrowLeft' && direction.x === 0) direction = { x: -1, y: 0 };
-      if (event.key === 'ArrowRight' && direction.x === 0) direction = { x: 1, y: 0 };
+    // Gestion du redimensionnement
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
     });
+
+    // Fonction d'easing pour mouvement parabolique
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    // UI Overlay - Interaction utilisateur
+    document.getElementById('resetCamera').addEventListener('click', () => {
+      const resetDuration = 2000;
+      const startPosition = camera.position.clone();
+      const targetPosition = new THREE.Vector3(0, 0, 25);
+      const startTime = performance.now();
+
+      isResetAnimating = true;
+      cancelResetAnimation = false;
+
+      function animateReset(currentTime) {
+        // Vérifier si l'animation doit être annulée
+        if (cancelResetAnimation) {
+          isResetAnimating = false;
+          cancelResetAnimation = false;
+          return;
+        }
+
+        const elapsed = currentTime - startTime;
+        const linearProgress = Math.min(elapsed / resetDuration, 1);
+        const easedProgress = easeInOutCubic(linearProgress);
+
+        camera.position.lerpVectors(startPosition, targetPosition, easedProgress);
+        camera.lookAt(0, 0, 0);
+
+        if (linearProgress < 1) {
+          requestAnimationFrame(animateReset);
+        } else {
+          isResetAnimating = false;
+        }
+      }
+      requestAnimationFrame(animateReset);
+    });
+
+    document.getElementById('toggleZoom').addEventListener('click', () => {
+      const zoomDuration = 1500;
+      const startPosition = camera.position.clone();
+      const targetPosition = isZoomedIn
+        ? new THREE.Vector3(0, 0, minZoom)
+        : new THREE.Vector3(0, 0, maxZoom);
+
+      const startTime = performance.now();
+      function animateZoom(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / zoomDuration, 1);
+        camera.position.lerpVectors(startPosition, targetPosition, progress);
+        camera.lookAt(0, 0, 0);
+
+        if (progress < 1) {
+          requestAnimationFrame(animateZoom);
+        } else {
+          isZoomedIn = !isZoomedIn;
+          // Mettre à jour les niveaux de zoom
+          zoomLevel = isZoomedIn ? 1 : 0;
+          targetZoomLevel = zoomLevel;
+        }
+      }
+      requestAnimationFrame(animateZoom);
+    });
+
+    // Zoom progressif avec la molette de la souris
+    window.addEventListener('wheel', (event) => {
+      if (isIntroActive) return; // Pas de zoom sur la page d'accueil
+
+      event.preventDefault();
+
+      // Ajuster le niveau de zoom cible basé sur la direction du scroll
+      const scrollSpeed = 0.002;
+      targetZoomLevel += event.deltaY * scrollSpeed;
+
+      // Limiter entre 0 et 1
+      targetZoomLevel = Math.max(0, Math.min(1, targetZoomLevel));
+
+      // Mettre à jour l'état isZoomedIn
+      isZoomedIn = targetZoomLevel > 0.5;
+    }, { passive: false });
+
+    // Déplacement de la caméra avec un clic maintenu
+    window.addEventListener('mousedown', (event) => {
+      if (isIntroActive) return; // Bloquer le mouvement sur la page d'accueil
+
+      isDragging = true;
+      previousMousePosition = { x: event.clientX, y: event.clientY };
+
+      // Annuler l'animation de replacement si en cours
+      if (isResetAnimating) {
+        cancelResetAnimation = true;
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    window.addEventListener('mousemove', (event) => {
+      if (isDragging) {
+        const deltaMove = {
+          x: event.clientX - previousMousePosition.x,
+          y: event.clientY - previousMousePosition.y,
+        };
+
+        camera.rotation.y -= deltaMove.x * 0.005;
+        camera.rotation.x -= deltaMove.y * 0.005;
+
+        previousMousePosition = { x: event.clientX, y: event.clientY };
+      }
+    });
+
+    // Mouvement subtil des particules (réduit pour garder l'état dispersé)
+    setInterval(() => {
+      if (particles) {
+        const positions = particles.geometry.attributes.position.array;
+        for (let i = 0; i < positions.length; i += 3) {
+          positions[i + 2] += (Math.random() - 0.5) * 0.02; // Mouvement très subtil
+        }
+        particles.geometry.attributes.position.needsUpdate = true;
+      }
+    }, 50);
+
+    // Masquer l'interface d'accueil lorsque l'utilisateur commence
+    document.getElementById('startButton').addEventListener('click', () => {
+      const overlay = document.getElementById('intro-overlay');
+
+      // Désactiver la page d'accueil et arrêter la rotation automatique
+      isIntroActive = false;
+      if (autoRotationInterval) {
+        clearInterval(autoRotationInterval);
+        autoRotationInterval = null;
+      }
+
+      // Faire disparaître progressivement le fond noir
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+
+        // Afficher les éléments et les faire apparaître progressivement
+        const pageTitle = document.getElementById('page-title');
+        const uiOverlay = document.getElementById('ui-overlay');
+        const arrowLeft = document.getElementById('arrow-left');
+        const arrowRight = document.getElementById('arrow-right');
+
+        pageTitle.style.display = 'block';
+        uiOverlay.style.display = 'flex';
+        arrowLeft.style.display = 'flex';
+        arrowRight.style.display = 'flex';
+
+        // Déclencher l'animation d'opacité après un court délai
+        setTimeout(() => {
+          pageTitle.style.opacity = '1';
+          uiOverlay.style.opacity = '1';
+        }, 50);
+
+        // Faire apparaître les flèches après le titre
+        setTimeout(() => {
+          arrowLeft.style.opacity = '1';
+          arrowRight.style.opacity = '1';
+          // Activer le flag pour permettre le fade in/out des boutons
+          buttonsAreVisible = true;
+        }, 800);
+      }, 1000);
+
+      // Déclencher le zoom arrière de la caméra
+      const zoomDuration = 1500;
+      const startPosition = camera.position.clone();
+      const targetPosition = new THREE.Vector3(0, 0, 25);
+      const startTime = performance.now();
+      function animateZoom(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / zoomDuration, 1);
+        camera.position.lerpVectors(startPosition, targetPosition, progress);
+        camera.lookAt(0, 0, 0);
+        if (progress < 1) {
+          requestAnimationFrame(animateZoom);
+        } else {
+          // Initialiser les niveaux de zoom à 0 (position loin)
+          zoomLevel = 0;
+          targetZoomLevel = 0;
+        }
+      }
+      requestAnimationFrame(animateZoom);
+    });
+
+// Ajouter des événements tactiles pour smartphone
+let touchStartX = 0;
+let touchEndX = 0;
+
+window.addEventListener('touchstart', (event) => {
+  touchStartX = event.changedTouches[0].screenX;
+});
+
+window.addEventListener('touchend', (event) => {
+  touchEndX = event.changedTouches[0].screenX;
+  handleGesture();
+});
+
+
+// Ajouter des interactions tactiles pour les boutons
+document.getElementById('toggleZoom').addEventListener('touchstart', () => {
+  document.getElementById('toggleZoom').click(); // Simuler un clic sur le bouton Zoom
+});
+
+document.getElementById('resetCamera').addEventListener('touchstart', () => {
+  document.getElementById('resetCamera').click(); // Simuler un clic sur le bouton Reset
+});
+let isTouchDragging = false;
+let touchStartPosition = { x: 0, y: 0 };
+
+window.addEventListener('touchstart', (event) => {
+  if (isIntroActive) return; // Bloquer le mouvement sur la page d'accueil
+
+  if (event.touches.length === 1) { // S'assurer qu'il s'agit d'un seul doigt
+    isTouchDragging = true;
+    touchStartPosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+
+    // Annuler l'animation de replacement si en cours
+    if (isResetAnimating) {
+      cancelResetAnimation = true;
+    }
+  }
+});
+
+window.addEventListener('touchmove', (event) => {
+  if (isTouchDragging) {
+    const touchMovePosition = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+    const deltaMove = {
+      x: touchMovePosition.x - touchStartPosition.x,
+      y: touchMovePosition.y - touchStartPosition.y,
+    };
+
+    // Appliquer les rotations à la caméra
+    camera.rotation.y -= deltaMove.x * 0.005; // Ajuster la sensibilité ici
+    camera.rotation.x -= deltaMove.y * 0.005;
+
+    // Mettre à jour la position initiale pour le prochain mouvement
+    touchStartPosition = touchMovePosition;
+  }
+});
+
+window.addEventListener('touchend', () => {
+  isTouchDragging = false;
+});
+
+// Animation de chargement au démarrage
+window.addEventListener('DOMContentLoaded', () => {
+  const introOverlay = document.getElementById('intro-overlay');
+  const titleContainer = document.getElementById('title-container');
+  const startButton = document.getElementById('startButton');
+
+  // Séquence d'animation fluide (accélérée)
+  // Phase 1 (0-200ms): titre commence à disparaître
+  setTimeout(() => {
+    titleContainer.style.opacity = '0';
+  }, 200);
+
+  // Phase 2 (400ms): titre commence à réapparaître
+  setTimeout(() => {
+    titleContainer.style.opacity = '0.5';
+  }, 400);
+
+  // Phase 3 (1200ms): tout devient visible progressivement avec fond allégé
+  setTimeout(() => {
+    introOverlay.style.background = 'rgba(0, 0, 0, 0.1)';
+    titleContainer.style.opacity = '1';
+  }, 1200);
+
+  // Phase 4 (2400ms): bouton >> apparaît
+  setTimeout(() => {
+    startButton.style.opacity = '1';
+  }, 2400);
+
+  // Rotation automatique de la caméra sur la page d'accueil
+  autoRotationInterval = setInterval(() => {
+    if (isIntroActive) {
+      camera.rotation.y += 0.001;
+    }
+  }, 16); // ~60fps
+});
+
+// Gestion de l'inactivité pour faire disparaître les boutons
+let inactivityTimer;
+let buttonsVisible = true;
+
+function hideButtons() {
+  const uiButtons = document.querySelectorAll('#ui-overlay button');
+  const arrows = document.querySelectorAll('.arrow');
+
+  uiButtons.forEach(btn => btn.style.opacity = '1');
+  arrows.forEach(arrow => arrow.style.opacity = '1');
+  buttonsVisible = false;
+}
+
+function showButtons() {
+  const uiButtons = document.querySelectorAll('#ui-overlay button');
+  const arrows = document.querySelectorAll('.arrow');
+
+  uiButtons.forEach(btn => btn.style.opacity = '1');
+  arrows.forEach(arrow => arrow.style.opacity = '1');
+  buttonsVisible = true;
+}
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+
+  if (!buttonsVisible) {
+    showButtons();
+  }
+
+  inactivityTimer = setTimeout(hideButtons, 3500);
+}
+
+// Écouter les événements d'activité
+window.addEventListener('mousemove', resetInactivityTimer);
+window.addEventListener('mousedown', resetInactivityTimer);
+window.addEventListener('keydown', resetInactivityTimer);
+window.addEventListener('touchstart', resetInactivityTimer);
+window.addEventListener('touchmove', resetInactivityTimer);
+
+// Démarrer le timer après le chargement de la page
+setTimeout(() => {
+  resetInactivityTimer();
+}, 1000);
+
   </script>
 </body>
 </html>
