@@ -30,7 +30,7 @@
     }
     #ui-overlay {
       position: absolute;
-      bottom: 10px; /* Marge réduite de moitié */
+      bottom: 5px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -231,7 +231,7 @@
     }
     #page-title {
       position: absolute;
-      top: 10px; /* Marge réduite de moitié */
+      top: 5px;
       left: 50%;
       transform: translateX(-50%);
       color: #55ffff;
@@ -250,7 +250,7 @@
     }
     @media (max-width: 768px) {
       #page-title {
-        top: 8px;
+        top: 5px;
         font-size: clamp(18px, 3.5vw, 32px);
         padding: 10px 20px;
         margin: 0 15px;
@@ -259,8 +259,8 @@
     /* Boutons de mode de vue */
     #view-mode-container {
       position: absolute;
-      bottom: 10px; /* Marge réduite de moitié */
-      right: 10px; /* Marge réduite de moitié */
+      bottom: 5px;
+      right: 5px;
       display: none;
       flex-direction: column;
       gap: 10px;
@@ -297,8 +297,8 @@
     }
     @media (max-width: 768px) {
       #view-mode-container {
-        bottom: 8px;
-        right: 8px;
+        bottom: 5px;
+        right: 5px;
         gap: 8px;
       }
       .view-mode-btn {
@@ -449,13 +449,10 @@
         }
 
         const particleGeometry = new THREE.BufferGeometry();
-        const particleMaterial = new THREE.PointsMaterial({
-          size: 0.02,
-          vertexColors: true,
-        });
 
         const particleVertices = [];
         const particleColors = [];
+        const particleOpacities = []; // Pour l'animation d'apparition
 
         for (let y = 0; y < imgHeight; y++) {
           for (let x = 0; x < imgWidth; x++) {
@@ -465,11 +462,7 @@
             let b = imgData.data[i + 2] / 255;
             const a = imgData.data[i + 3] / 255;
 
-            // Vérifier si le pixel est noir ou très sombre
-            const brightness = (r + g + b) / 3;
-            const isBlackish = brightness < 0.1; // Seuil pour noir/très sombre
-
-            if (a > 0.5 && !isBlackish) {
+            if (a > 0.5) {
               // Saturer les couleurs
               const saturated = saturateColor(r, g, b);
               r = saturated.r;
@@ -481,12 +474,43 @@
               const posZ = (Math.random() - 0.5) * 8; // État légèrement dispersé
               particleVertices.push(posX, posY, posZ);
               particleColors.push(r, g, b);
+
+              // Initialiser l'opacité à 0 pour l'animation d'apparition
+              particleOpacities.push(isIntroActive ? 0 : 1);
             }
           }
         }
 
         particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute(particleVertices, 3));
         particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
+        particleGeometry.setAttribute('alpha', new THREE.Float32BufferAttribute(particleOpacities, 1));
+
+        // Shader personnalisé pour gérer l'opacité par particule
+        const particleMaterial = new THREE.ShaderMaterial({
+          vertexShader: `
+            attribute float alpha;
+            varying vec3 vColor;
+            varying float vAlpha;
+
+            void main() {
+              vColor = color;
+              vAlpha = alpha;
+              vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+              gl_PointSize = 0.02 * (300.0 / -mvPosition.z);
+              gl_Position = projectionMatrix * mvPosition;
+            }
+          `,
+          fragmentShader: `
+            varying vec3 vColor;
+            varying float vAlpha;
+
+            void main() {
+              gl_FragColor = vec4(vColor, vAlpha);
+            }
+          `,
+          vertexColors: true,
+          transparent: true
+        });
 
         if (particles) {
           sceneGroup.remove(particles);
@@ -495,6 +519,35 @@
         particles = new THREE.Points(particleGeometry, particleMaterial);
         particles.rotation.x = Math.PI; // Corriger l'orientation de l'image
         sceneGroup.add(particles);
+
+        // Animation d'apparition uniquement sur la page d'accueil
+        if (isIntroActive) {
+          const alphaArray = particleGeometry.attributes.alpha.array;
+          const particleCount = alphaArray.length;
+
+          // Animer chaque particule avec un délai aléatoire
+          for (let i = 0; i < particleCount; i++) {
+            const delay = 250 + Math.random() * 4750; // Entre 250ms et 5000ms
+            const duration = 500; // Durée de l'apparition
+
+            setTimeout(() => {
+              const startTime = performance.now();
+
+              function animateParticle(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                alphaArray[i] = progress;
+                particleGeometry.attributes.alpha.needsUpdate = true;
+
+                if (progress < 1) {
+                  requestAnimationFrame(animateParticle);
+                }
+              }
+              requestAnimationFrame(animateParticle);
+            }, delay);
+          }
+        }
       }, undefined, function (err) {
         console.error(`Une erreur est survenue lors du chargement de l'image ${imageIndex}:`, err);
       });
