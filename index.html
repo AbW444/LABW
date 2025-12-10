@@ -415,6 +415,11 @@
     const minZoom = -25; // Position loin (inversé)
     const maxZoom = -2;  // Position proche (inversé)
 
+    // Variables pour lisser les rotations en mode caméra uniquement
+    let targetCameraRotationX = 0;
+    let targetCameraRotationY = 0;
+    const cameraLerpFactor = 0.15; // Facteur d'interpolation pour lisser les micro-mouvements
+
     const textureLoader = new THREE.TextureLoader();
 
     // Saturation des couleurs
@@ -757,6 +762,10 @@
     sceneGroup.position.set(1.5, 0, -2);
     sceneGroup.rotation.y = 0.15; // Rotation légère pour le désaxage
 
+    // Initialiser les rotations cibles de la caméra
+    targetCameraRotationX = camera.rotation.x;
+    targetCameraRotationY = camera.rotation.y;
+
     // Animation
     function animate() {
       requestAnimationFrame(animate);
@@ -797,6 +806,12 @@
         zoomLevel += (targetZoomLevel - zoomLevel) * 0.1;
         // Calculer la position Z interpolée (inversée pour le groupe)
         sceneGroup.position.z = minZoom + (maxZoom - minZoom) * zoomLevel;
+      }
+
+      // Interpolation pour lisser les rotations de la caméra en mode caméra
+      if (viewMode === 'camera' && !isResetAnimating) {
+        camera.rotation.x += (targetCameraRotationX - camera.rotation.x) * cameraLerpFactor;
+        camera.rotation.y += (targetCameraRotationY - camera.rotation.y) * cameraLerpFactor;
       }
 
       renderer.render(scene, camera);
@@ -979,13 +994,13 @@
         };
 
         if (viewMode === 'scene') {
-          // Mode Scène : Bouger les pixels (le groupe)
-          sceneGroup.rotation.y += deltaMove.x * 0.005;
-          sceneGroup.rotation.x += deltaMove.y * 0.005;
+          // Mode Scène : Bouger les pixels (le groupe) - sensibilité réduite
+          sceneGroup.rotation.y += deltaMove.x * 0.003;
+          sceneGroup.rotation.x += deltaMove.y * 0.003;
         } else {
-          // Mode Caméra : Bouger l'angle de vue de la caméra
-          camera.rotation.y -= deltaMove.x * 0.005;
-          camera.rotation.x -= deltaMove.y * 0.005;
+          // Mode Caméra : Mettre à jour les rotations cibles (interpolation dans animate())
+          targetCameraRotationY -= deltaMove.x * 0.005;
+          targetCameraRotationX -= deltaMove.y * 0.005;
         }
 
         previousMousePosition = { x: event.clientX, y: event.clientY };
@@ -1018,6 +1033,9 @@
             requestAnimationFrame(animateCameraReset);
           } else {
             camera.lookAt(0, 0, -1);
+            // Synchroniser les rotations cibles
+            targetCameraRotationX = camera.rotation.x;
+            targetCameraRotationY = camera.rotation.y;
           }
         }
         requestAnimationFrame(animateCameraReset);
@@ -1083,39 +1101,36 @@
         autoRotationInterval = null;
       }
 
-      // Faire disparaître progressivement le fond noir
-      overlay.style.opacity = '0';
+      // Retirer immédiatement le fond noir
+      overlay.style.display = 'none';
+
+      // Afficher les éléments et les faire apparaître progressivement
+      const pageTitle = document.getElementById('page-title');
+      const uiOverlay = document.getElementById('ui-overlay');
+      const arrowLeft = document.getElementById('arrow-left');
+      const arrowRight = document.getElementById('arrow-right');
+      const viewModeContainer = document.getElementById('view-mode-container');
+
+      pageTitle.style.display = 'block';
+      uiOverlay.style.display = 'flex';
+      arrowLeft.style.display = 'flex';
+      arrowRight.style.display = 'flex';
+      viewModeContainer.style.display = 'flex';
+
+      // Déclencher l'animation d'opacité après un court délai
       setTimeout(() => {
-        overlay.style.display = 'none';
+        pageTitle.style.opacity = '1';
+        uiOverlay.style.opacity = '1';
+      }, 50);
 
-        // Afficher les éléments et les faire apparaître progressivement
-        const pageTitle = document.getElementById('page-title');
-        const uiOverlay = document.getElementById('ui-overlay');
-        const arrowLeft = document.getElementById('arrow-left');
-        const arrowRight = document.getElementById('arrow-right');
-        const viewModeContainer = document.getElementById('view-mode-container');
-
-        pageTitle.style.display = 'block';
-        uiOverlay.style.display = 'flex';
-        arrowLeft.style.display = 'flex';
-        arrowRight.style.display = 'flex';
-        viewModeContainer.style.display = 'flex';
-
-        // Déclencher l'animation d'opacité après un court délai
-        setTimeout(() => {
-          pageTitle.style.opacity = '1';
-          uiOverlay.style.opacity = '1';
-        }, 50);
-
-        // Faire apparaître les flèches et les boutons de mode après le titre
-        setTimeout(() => {
-          arrowLeft.style.opacity = '1';
-          arrowRight.style.opacity = '1';
-          viewModeContainer.style.opacity = '1';
-          // Activer le flag pour permettre le fade in/out des boutons
-          buttonsAreVisible = true;
-        }, 800);
-      }, 1000);
+      // Faire apparaître les flèches et les boutons de mode après le titre
+      setTimeout(() => {
+        arrowLeft.style.opacity = '1';
+        arrowRight.style.opacity = '1';
+        viewModeContainer.style.opacity = '1';
+        // Activer le flag pour permettre le fade in/out des boutons
+        buttonsAreVisible = true;
+      }, 800);
 
       // Déclencher le zoom arrière du groupe (inversé) et centrer l'écran
       const zoomDuration = 1500;
@@ -1186,13 +1201,13 @@ window.addEventListener('touchmove', (event) => {
     };
 
     if (viewMode === 'scene') {
-      // Mode Scène : Bouger les pixels (le groupe)
-      sceneGroup.rotation.y += deltaMove.x * 0.005;
-      sceneGroup.rotation.x += deltaMove.y * 0.005;
+      // Mode Scène : Bouger les pixels (le groupe) - sensibilité réduite
+      sceneGroup.rotation.y += deltaMove.x * 0.003;
+      sceneGroup.rotation.x += deltaMove.y * 0.003;
     } else {
-      // Mode Caméra : Bouger l'angle de vue de la caméra
-      camera.rotation.y -= deltaMove.x * 0.005;
-      camera.rotation.x -= deltaMove.y * 0.005;
+      // Mode Caméra : Mettre à jour les rotations cibles (interpolation dans animate())
+      targetCameraRotationY -= deltaMove.x * 0.005;
+      targetCameraRotationX -= deltaMove.y * 0.005;
     }
 
     // Mettre à jour la position initiale pour le prochain mouvement
