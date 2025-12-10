@@ -329,6 +329,10 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
+    // GROUPE pour contenir tous les éléments de la scène (qui bougeront au lieu de la caméra)
+    const sceneGroup = new THREE.Group();
+    scene.add(sceneGroup);
+
     let particles;
     let isDragging = false;
     let previousMousePosition = { x: 0, y: 0 };
@@ -344,8 +348,8 @@
     // Variables pour le zoom progressif (DOIVENT être déclarées avant animate())
     let zoomLevel = 0;
     let targetZoomLevel = 0;
-    const minZoom = 25; // Position loin
-    const maxZoom = 2;  // Position proche
+    const minZoom = -25; // Position loin (inversé)
+    const maxZoom = -2;  // Position proche (inversé)
 
     const textureLoader = new THREE.TextureLoader();
 
@@ -419,12 +423,12 @@
         particleGeometry.setAttribute('color', new THREE.Float32BufferAttribute(particleColors, 3));
 
         if (particles) {
-          scene.remove(particles);
+          sceneGroup.remove(particles);
         }
 
         particles = new THREE.Points(particleGeometry, particleMaterial);
         particles.rotation.x = Math.PI; // Corriger l'orientation de l'image
-        scene.add(particles);
+        sceneGroup.add(particles);
       }, undefined, function (err) {
         console.error(`Une erreur est survenue lors du chargement de l'image ${imageIndex}:`, err);
       });
@@ -477,7 +481,7 @@
       opacity: 1.0, // PLEINE LUMINOSITÉ
     });
     const bigStars = new THREE.Points(bigStarsGeometry, bigStarsMaterial);
-    scene.add(bigStars);
+    sceneGroup.add(bigStars);
 
     // Couche 2 : Étoiles moyennes (plus nombreuses)
     const mediumStarsGeometry = new THREE.BufferGeometry();
@@ -503,7 +507,7 @@
       opacity: 0.7, // Luminosité moyenne
     });
     const mediumStars = new THREE.Points(mediumStarsGeometry, mediumStarsMaterial);
-    scene.add(mediumStars);
+    sceneGroup.add(mediumStars);
 
     // Couche 3 : Petites étoiles lointaines (très nombreuses, discrètes)
     const smallStarsGeometry = new THREE.BufferGeometry();
@@ -529,7 +533,7 @@
       opacity: 0.25, // BEAUCOUP plus discrètes - contraste fort
     });
     const smallStars = new THREE.Points(smallStarsGeometry, smallStarsMaterial);
-    scene.add(smallStars);
+    sceneGroup.add(smallStars);
 
     // Référence pour l'animation (on garde la référence de la couche moyenne pour la rotation)
     const stars = mediumStars;
@@ -587,7 +591,7 @@
         life: 100,
         startPos: newPos
       };
-      scene.add(shootingStar);
+      sceneGroup.add(shootingStar);
       shootingStars.push(shootingStar);
     }
 
@@ -603,16 +607,16 @@
     const moonMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xaaaaaa });
     const moon = new THREE.Mesh(moonGeometry, moonMaterial);
     moon.position.set(50, 100, -200);
-    scene.add(moon);
+    sceneGroup.add(moon);
 
     // Ajouter la lumière directionnelle pour la Lune
     const moonLight = new THREE.PointLight(0xffffff, 1, 500);
     moonLight.position.set(50, 100, -200);
-    scene.add(moonLight);
+    sceneGroup.add(moonLight);
 
     // Ajouter une lumière ambiante fixe
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
+    scene.add(ambientLight); // La lumière ambiante reste dans la scène
 
     // Ajouter la neige à la scène
     const snowGeometry = new THREE.BufferGeometry();
@@ -633,7 +637,7 @@
 
     snowGeometry.setAttribute('position', new THREE.Float32BufferAttribute(snowVertices, 3));
     const snow = new THREE.Points(snowGeometry, snowMaterial);
-    scene.add(snow);
+    sceneGroup.add(snow);
 
     // Précharger l'image 4 pour définir la hauteur de référence
     const referencePath = `./Projet_test_HLS_LMPI/Ressources/test%20004.jpg`;
@@ -658,9 +662,12 @@
       loadImage(currentImageIndex);
     });
 
-    // Position initiale de la caméra
-    camera.position.set(0, 0, 2);
-    camera.lookAt(0, 0, 0);
+    // Position initiale de la caméra (FIXE maintenant)
+    camera.position.set(0, 0, 0);
+    camera.lookAt(0, 0, -1);
+
+    // Position initiale du groupe (simule la caméra à z=2)
+    sceneGroup.position.set(0, 0, -2);
 
     // Animation
     function animate() {
@@ -690,18 +697,18 @@
         star.geometry.attributes.position.needsUpdate = true;
 
         if (star.userData.life <= 0) {
-          scene.remove(star);
+          sceneGroup.remove(star);
           shootingStars.splice(i, 1);
         }
       }
 
       // Zoom fluide progressif (interpolation vers la cible)
+      // Au lieu de bouger la caméra, on bouge le groupe
       if (Math.abs(targetZoomLevel - zoomLevel) > 0.001) {
         // Lerp fluide vers la position cible
         zoomLevel += (targetZoomLevel - zoomLevel) * 0.1;
-        // Calculer la position Z interpolée
-        camera.position.z = minZoom + (maxZoom - minZoom) * zoomLevel;
-        camera.lookAt(0, 0, 0);
+        // Calculer la position Z interpolée (inversée pour le groupe)
+        sceneGroup.position.z = minZoom + (maxZoom - minZoom) * zoomLevel;
       }
 
       renderer.render(scene, camera);
@@ -723,8 +730,8 @@
     // UI Overlay - Interaction utilisateur
     document.getElementById('resetCamera').addEventListener('click', () => {
       const resetDuration = 2000;
-      const startPosition = camera.position.clone();
-      const targetPosition = new THREE.Vector3(0, 0, 25);
+      const startPosition = sceneGroup.position.clone();
+      const targetPosition = new THREE.Vector3(0, 0, -25); // Inversé
       const startTime = performance.now();
 
       isResetAnimating = true;
@@ -742,8 +749,7 @@
         const linearProgress = Math.min(elapsed / resetDuration, 1);
         const easedProgress = easeInOutCubic(linearProgress);
 
-        camera.position.lerpVectors(startPosition, targetPosition, easedProgress);
-        camera.lookAt(0, 0, 0);
+        sceneGroup.position.lerpVectors(startPosition, targetPosition, easedProgress);
 
         if (linearProgress < 1) {
           requestAnimationFrame(animateReset);
@@ -756,7 +762,7 @@
 
     document.getElementById('toggleZoom').addEventListener('click', () => {
       const zoomDuration = 1500;
-      const startPosition = camera.position.clone();
+      const startPosition = sceneGroup.position.clone();
       const targetPosition = isZoomedIn
         ? new THREE.Vector3(0, 0, minZoom)
         : new THREE.Vector3(0, 0, maxZoom);
@@ -765,8 +771,7 @@
       function animateZoom(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / zoomDuration, 1);
-        camera.position.lerpVectors(startPosition, targetPosition, progress);
-        camera.lookAt(0, 0, 0);
+        sceneGroup.position.lerpVectors(startPosition, targetPosition, progress);
 
         if (progress < 1) {
           requestAnimationFrame(animateZoom);
@@ -821,8 +826,9 @@
           y: event.clientY - previousMousePosition.y,
         };
 
-        camera.rotation.y -= deltaMove.x * 0.005;
-        camera.rotation.x -= deltaMove.y * 0.005;
+        // Inverser les rotations pour le groupe
+        sceneGroup.rotation.y += deltaMove.x * 0.005;
+        sceneGroup.rotation.x += deltaMove.y * 0.005;
 
         previousMousePosition = { x: event.clientX, y: event.clientY };
       }
@@ -881,16 +887,15 @@
         }, 800);
       }, 1000);
 
-      // Déclencher le zoom arrière de la caméra
+      // Déclencher le zoom arrière du groupe (inversé)
       const zoomDuration = 1500;
-      const startPosition = camera.position.clone();
-      const targetPosition = new THREE.Vector3(0, 0, 25);
+      const startPosition = sceneGroup.position.clone();
+      const targetPosition = new THREE.Vector3(0, 0, -25);
       const startTime = performance.now();
       function animateZoom(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / zoomDuration, 1);
-        camera.position.lerpVectors(startPosition, targetPosition, progress);
-        camera.lookAt(0, 0, 0);
+        sceneGroup.position.lerpVectors(startPosition, targetPosition, progress);
         if (progress < 1) {
           requestAnimationFrame(animateZoom);
         } else {
@@ -949,9 +954,9 @@ window.addEventListener('touchmove', (event) => {
       y: touchMovePosition.y - touchStartPosition.y,
     };
 
-    // Appliquer les rotations à la caméra
-    camera.rotation.y -= deltaMove.x * 0.005; // Ajuster la sensibilité ici
-    camera.rotation.x -= deltaMove.y * 0.005;
+    // Appliquer les rotations au groupe (inversées)
+    sceneGroup.rotation.y += deltaMove.x * 0.005; // Ajuster la sensibilité ici
+    sceneGroup.rotation.x += deltaMove.y * 0.005;
 
     // Mettre à jour la position initiale pour le prochain mouvement
     touchStartPosition = touchMovePosition;
@@ -990,10 +995,10 @@ window.addEventListener('DOMContentLoaded', () => {
     startButton.style.opacity = '1';
   }, 2400);
 
-  // Rotation automatique de la caméra sur la page d'accueil
+  // Rotation automatique du groupe sur la page d'accueil
   autoRotationInterval = setInterval(() => {
     if (isIntroActive) {
-      camera.rotation.y += 0.001;
+      sceneGroup.rotation.y -= 0.001; // Inversé
     }
   }, 16); // ~60fps
 });
