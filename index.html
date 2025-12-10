@@ -795,40 +795,74 @@
     // UI Overlay - Interaction utilisateur
     document.getElementById('resetCamera').addEventListener('click', () => {
       const resetDuration = 2000;
-      const startPosition = sceneGroup.position.clone();
-      const startRotation = new THREE.Euler().copy(sceneGroup.rotation);
-      const targetPosition = new THREE.Vector3(0, 0, -25); // Position loin et centré
-      const targetRotation = new THREE.Euler(0, 0, 0); // Rotation neutre
       const startTime = performance.now();
 
       isResetAnimating = true;
       cancelResetAnimation = false;
 
-      function animateReset(currentTime) {
-        // Vérifier si l'animation doit être annulée
-        if (cancelResetAnimation) {
-          isResetAnimating = false;
-          cancelResetAnimation = false;
-          return;
+      if (viewMode === 'scene') {
+        // Mode Scène : repositionner le groupe
+        const startPosition = sceneGroup.position.clone();
+        const startRotation = new THREE.Euler().copy(sceneGroup.rotation);
+        const targetPosition = new THREE.Vector3(0, 0, -25); // Position loin et centré
+        const targetRotation = new THREE.Euler(0, 0, 0); // Rotation neutre
+
+        function animateReset(currentTime) {
+          // Vérifier si l'animation doit être annulée
+          if (cancelResetAnimation) {
+            isResetAnimating = false;
+            cancelResetAnimation = false;
+            return;
+          }
+
+          const elapsed = currentTime - startTime;
+          const linearProgress = Math.min(elapsed / resetDuration, 1);
+          const easedProgress = easeInOutCubic(linearProgress);
+
+          // Interpoler position et rotation du groupe
+          sceneGroup.position.lerpVectors(startPosition, targetPosition, easedProgress);
+          sceneGroup.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easedProgress;
+          sceneGroup.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easedProgress;
+          sceneGroup.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easedProgress;
+
+          if (linearProgress < 1) {
+            requestAnimationFrame(animateReset);
+          } else {
+            isResetAnimating = false;
+          }
         }
+        requestAnimationFrame(animateReset);
+      } else {
+        // Mode Caméra : repositionner la caméra
+        const startRotation = new THREE.Euler().copy(camera.rotation);
+        const targetRotation = new THREE.Euler(0, 0, 0); // Rotation neutre
 
-        const elapsed = currentTime - startTime;
-        const linearProgress = Math.min(elapsed / resetDuration, 1);
-        const easedProgress = easeInOutCubic(linearProgress);
+        function animateReset(currentTime) {
+          // Vérifier si l'animation doit être annulée
+          if (cancelResetAnimation) {
+            isResetAnimating = false;
+            cancelResetAnimation = false;
+            return;
+          }
 
-        // Interpoler position et rotation
-        sceneGroup.position.lerpVectors(startPosition, targetPosition, easedProgress);
-        sceneGroup.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easedProgress;
-        sceneGroup.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easedProgress;
-        sceneGroup.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easedProgress;
+          const elapsed = currentTime - startTime;
+          const linearProgress = Math.min(elapsed / resetDuration, 1);
+          const easedProgress = easeInOutCubic(linearProgress);
 
-        if (linearProgress < 1) {
-          requestAnimationFrame(animateReset);
-        } else {
-          isResetAnimating = false;
+          // Interpoler rotation de la caméra
+          camera.rotation.x = startRotation.x + (targetRotation.x - startRotation.x) * easedProgress;
+          camera.rotation.y = startRotation.y + (targetRotation.y - startRotation.y) * easedProgress;
+          camera.rotation.z = startRotation.z + (targetRotation.z - startRotation.z) * easedProgress;
+
+          if (linearProgress < 1) {
+            requestAnimationFrame(animateReset);
+          } else {
+            isResetAnimating = false;
+            camera.lookAt(0, 0, -1);
+          }
         }
+        requestAnimationFrame(animateReset);
       }
-      requestAnimationFrame(animateReset);
     });
 
     document.getElementById('toggleZoom').addEventListener('click', () => {
@@ -991,12 +1025,12 @@
         }, 800);
       }, 1000);
 
-      // Déclencher le zoom arrière du groupe (inversé) et conserver le désaxage
+      // Déclencher le zoom arrière du groupe (inversé) et centrer l'écran
       const zoomDuration = 1500;
       const startPosition = sceneGroup.position.clone();
       const startRotation = new THREE.Euler().copy(sceneGroup.rotation);
-      const targetPosition = new THREE.Vector3(1.5, 0, -25); // Conserver le désaxage en X
-      const targetRotation = new THREE.Euler(0, 0.15, 0); // Conserver la rotation désaxée
+      const targetPosition = new THREE.Vector3(0, 0, -25); // Position centrée
+      const targetRotation = new THREE.Euler(0, 0, 0); // Rotation centrée
       const startTime = performance.now();
       function animateZoom(currentTime) {
         const elapsed = currentTime - startTime;
